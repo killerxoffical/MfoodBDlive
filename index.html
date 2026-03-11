@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* --- ALL CSS FROM food v6.html IS HERE, NO CHANGES NEEDED IN CSS FOR THIS UPDATE --- */
         /* GLOBAL VARIABLES & THEME */
         :root {
             --primary: #FF5722; 
@@ -39,6 +38,15 @@
             --input-bg: #222222;
             --stepper-inactive: #444444;
             --glass: rgba(20, 20, 20, 0.7);
+        }
+
+        /* OVERSCROLL FIX AND SCROLLBAR HIDE */
+        html, body { 
+            overscroll-behavior-y: none; /* Stops the rubber-band bouncing effect */
+            scrollbar-width: none; /* Firefox */
+        }
+        ::-webkit-scrollbar { 
+            display: none; /* Chrome, Safari, Opera */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
@@ -112,10 +120,15 @@
         .btn-sm { padding: 8px 14px; font-size: 0.85rem; width: auto; border-radius: 8px; }
         .btn.disabled { background: #ccc; color: #666; pointer-events: none; box-shadow: none; }
         
+        /* GOOGLE BUTTON STYLES */
+        .btn-google { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); margin-top: 15px; box-shadow: var(--shadow); }
+        .btn-google img { width: 22px; height: 22px; margin-right: 8px; }
+        .btn-google:active { transform: scale(0.98); }
+
         .form-control { width: 100%; padding: 14px; border: 1px solid var(--border-color); border-radius: 12px; outline: none; transition: 0.3s; font-size: 1rem; background: var(--input-bg); margin-bottom: 15px; color: var(--text-main); }
         .form-control:focus { border-color: var(--primary); background: var(--bg-card); box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1); }
         
-        /* Header Styles - MODIFIED */
+        /* Header Styles */
         header { background: var(--bg-card); padding: 8px 15px; height: 65px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 15px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); border-radius: 0 0 20px 20px; }
         .app-logo { font-size: 1.2rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; }
         .app-logo img { width: 48px; height: 48px; object-fit: contain; }
@@ -210,7 +223,9 @@
         .menu-hero-content { position: absolute; bottom: 20px; left: 20px; right: 20px; color: white; transition: opacity 0.3s; }
         .menu-hero-title { font-size: 1.8rem; font-weight: 800; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         .menu-hero-desc { font-size: 0.9rem; opacity: 0.9; margin-top: 5px; }
-        .menu-product-container { background: var(--bg-body); border-radius: 24px 24px 0 0; margin-top: -20px; position: relative; z-index: 5; padding: 20px; }
+        
+        /* PADDING BOTTOM ADDED TO FIX NAVBAR HIDING LAST ITEM */
+        .menu-product-container { background: var(--bg-body); border-radius: 24px 24px 0 0; margin-top: -20px; position: relative; z-index: 5; padding: 20px; padding-bottom: 120px; }
         
         #menu-sticky-header {
             position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 120;
@@ -1302,7 +1317,13 @@
         <input type="email" id="login-email" class="form-control" placeholder="Email Address">
         <input type="password" id="login-password" class="form-control" placeholder="Password">
         <button class="btn btn-primary" onclick="handleLogin()">Login</button>
-        <div class="auth-toggle-link" style="margin-top:10px;">
+        
+        <button class="btn btn-google" onclick="handleGoogleLogin()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+            Continue with Google
+        </button>
+
+        <div class="auth-toggle-link" style="margin-top:15px;">
             Forgot Password? <span onclick="handleForgotPassword()">Reset by Email</span>
         </div>
         <div class="auth-toggle-link">
@@ -1320,7 +1341,13 @@
         <input type="email" id="reg-email" class="form-control" placeholder="Email Address">
         <input type="password" id="reg-password" class="form-control" placeholder="Password">
         <button class="btn btn-primary" onclick="handleSignup()">Sign Up</button>
-        <div class="auth-toggle-link">
+        
+        <button class="btn btn-google" onclick="handleGoogleLogin()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+            Sign up with Google
+        </button>
+
+        <div class="auth-toggle-link" style="margin-top: 15px;">
             Already have an account? <span onclick="showAuthPage('login')">Login</span>
         </div>
     </div>
@@ -1658,7 +1685,7 @@
                             <div class="warning-header"><i class="fas fa-exclamation-triangle"></i> হাই ভ্যালু অর্ডার</div>
                             <p class="warning-text-short">৪০০+ টাকার অর্ডারের ক্ষেত্রে রাইডারের কাছে পর্যাপ্ত টাকা নাও থাকতে পারে।</p>
                             <div id="warning-full-text" class="hidden">
-                                <p class="warning-text-full">তাই মেসেজে রাইডারের সাথে কথা বলে নিবেন। সমস্যা হলে আমাদের সাপোর্টে কল বা হোয়াটসঅ্যাপে মেসেজ করবেন। বেশি টাকার অর্ডার হলে চেষ্টা করবেন টাকাটা বিকাশে দিয়ে রাইডারকে সহযোগিতা করার, কারণ রাইডারদের কাছে সব সময় এত টাকা থাকে না। আশা করি আমাদের সীমাবদ্ধতাটা বুঝবেন।</p>
+                                <p class="warning-text-full">তাই মেসেজে রাইডারের সাথে কথা বলে নিবেন। সমস্যা হলে আমাদের সাপোর্টে কল বা হোয়াটসঅ্যাপে মেসেজ করবেন। বেশি টাকার অর্ডার হলে চেষ্টা করবেন টাকাটা বিকাশে দিয়ে রাইডারকে সহযোগিতা করার, কারণ রাইডারদের কাছে সব সময় এত টাকা থাকে মহাশয়। আশা করি আমাদের সীমাবদ্ধতাটা বুঝবেন।</p>
                                 <div style="display:flex; align-items:center; margin-top:5px;">
                                     <span style="font-weight:700; color:var(--text-main);">01601630967</span>
                                     <button class="copy-btn-sm" onclick="copyNumber('01601630967')">Copy</button>
@@ -1988,7 +2015,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
         import { getDatabase, ref, onValue, set, push, update, remove, serverTimestamp, get, onChildAdded, onChildChanged, off } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
         
         const firebaseConfig = {
@@ -2184,6 +2211,31 @@
             }, 500);
         });
         async function initApp(){fetchSettings();fetchRootCategories();fetchProducts();fetchRestaurants();}
+        
+        window.handleGoogleLogin = async () => {
+            const provider = new GoogleAuthProvider();
+            toggleLoader(true);
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                const userRef = ref(db, `users/${user.uid}/profile`);
+                const snap = await get(userRef);
+                if (!snap.exists()) {
+                    await set(userRef, { 
+                        email: user.email, 
+                        displayName: user.displayName || 'User', 
+                        avatarUrl: user.photoURL || '', 
+                        createdAt: serverTimestamp() 
+                    });
+                }
+                showToast("Logged in with Google");
+            } catch (e) {
+                showCustomAlert(e.message, "Google Login Failed");
+            } finally {
+                toggleLoader(false);
+            }
+        };
+
         window.handleLogin=async()=>{const e=document.getElementById('login-email').value,p=document.getElementById('login-password').value;if(!e||!p)return;toggleLoader(true);try{await signInWithEmailAndPassword(auth,e,p);}catch(e){showCustomAlert(e.message, "Login Failed");}finally{toggleLoader(false);}};
         window.handleSignup=async()=>{ const n=document.getElementById('reg-name').value, e=document.getElementById('reg-email').value,p=document.getElementById('reg-password').value; if(!e||!p||!n)return;toggleLoader(true);try{const c=await createUserWithEmailAndPassword(auth,e,p);await set(ref(db,`users/${c.user.uid}/profile`),{email:e,displayName:n,createdAt:serverTimestamp()});showToast("Account created");}catch(e){showCustomAlert(e.message, "Signup Failed");}finally{toggleLoader(false);}};
         window.handleLogout=()=> { toggleLoader(true); localStorage.removeItem('cart'); cart = []; document.getElementById('orders-list').innerHTML = ""; document.getElementById('history-list').innerHTML = ""; document.getElementById('global-cart-items').innerHTML = ""; signOut(auth).then(() => { window.location.reload(); }); };
@@ -3217,45 +3269,45 @@
         };
         window.closeChat = () => { document.getElementById('chat-modal').style.opacity = '0'; document.getElementById('chat-modal').style.pointerEvents = 'none'; activeChatOrderId = null; };
         const chatListeners = {};
-        function listenChat(orderId, riderName) {
-    if (chatListeners[orderId]) return;
-    const chatRef = ref(db, `chats/${orderId}/messages`);
-    const listener = onChildAdded(chatRef, (snapshot) => {
-        const msg = snapshot.val();
-        const key = snapshot.key;
-
-        if (activeChatOrderId === orderId) {
-            renderMessage(msg, key);
-            if (msg.senderId !== currentUser.uid && !msg.seen) {
-                update(ref(db, `chats/${orderId}/messages/${key}`), { seen: true });
-                dismissedMessages.add(key);
-            }
-        }
-        if (msg.senderId !== currentUser.uid) {
-            
-            // ============ ADD THIS CODE BLOCK ============
-            // Check if the native Android interface exists
-            if (typeof window.Android !== "undefined" && window.Android.showNotification) {
-                // If the message is not from the current user and the chat window is not open
-                if (activeChatOrderId !== orderId) {
-                     window.Android.showNotification('New Message from ' + (riderName || "Rider"), msg.text);
-                }
-            }
-            // ===========================================
-
-            if (activeChatOrderId !== orderId) {
-                if (!msg.seen && !dismissedMessages.has(key)) {
-                    const exists = unreadChatQueue.find(x => x.key === key);
-                    if (!exists) {
-                        unreadChatQueue.push({ key: key, orderId: orderId, riderName: riderName || "Rider", riderId: msg.senderId, text: msg.text });
-                        updateNavNotification();
+        function listenChat(orderId, riderName) { 
+            if(chatListeners[orderId]) return; 
+            const chatRef = ref(db, `chats/${orderId}/messages`); 
+            const listener = onChildAdded(chatRef, (snapshot) => { 
+                const msg = snapshot.val(); 
+                const key = snapshot.key; 
+                
+                if (activeChatOrderId === orderId) { 
+                    renderMessage(msg, key); 
+                    if(msg.senderId !== currentUser.uid && !msg.seen) { 
+                        update(ref(db, `chats/${orderId}/messages/${key}`), { seen: true }); 
+                        dismissedMessages.add(key); 
+                    } 
+                } 
+                if (msg.senderId !== currentUser.uid) { 
+                    
+                    // ============================================================
+                    // CONNECTION TO ANDROID APP FOR NATIVE NOTIFICATIONS
+                    // ============================================================
+                    if (typeof window.Android !== "undefined" && window.Android.showNotification) {
+                        if (activeChatOrderId !== orderId) {
+                             window.Android.showNotification('New Message from ' + (riderName || "Rider"), msg.text);
+                        }
                     }
-                }
-            }
+                    // ============================================================
+
+                    if (activeChatOrderId !== orderId) { 
+                        if (!msg.seen && !dismissedMessages.has(key)) { 
+                            const exists = unreadChatQueue.find(x => x.key === key); 
+                            if(!exists) { 
+                                unreadChatQueue.push({ key: key, orderId: orderId, riderName: riderName || "Rider", riderId: msg.senderId, text: msg.text }); 
+                                updateNavNotification(); 
+                            } 
+                        } 
+                    } 
+                } 
+            }); 
+            chatListeners[orderId] = listener; 
         }
-    });
-    chatListeners[orderId] = listener;
-}
         
         function updateNavNotification() {
             const dot = document.getElementById('nav-orders-dot');
