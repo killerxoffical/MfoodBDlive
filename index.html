@@ -3217,7 +3217,45 @@
         };
         window.closeChat = () => { document.getElementById('chat-modal').style.opacity = '0'; document.getElementById('chat-modal').style.pointerEvents = 'none'; activeChatOrderId = null; };
         const chatListeners = {};
-        function listenChat(orderId, riderName) { if(chatListeners[orderId]) return; const chatRef = ref(db, `chats/${orderId}/messages`); const listener = onChildAdded(chatRef, (snapshot) => { const msg = snapshot.val(); const key = snapshot.key; if (activeChatOrderId === orderId) { renderMessage(msg, key); if(msg.senderId !== currentUser.uid && !msg.seen) { update(ref(db, `chats/${orderId}/messages/${key}`), { seen: true }); dismissedMessages.add(key); } } if (msg.senderId !== currentUser.uid) { if (activeChatOrderId !== orderId) { if (!msg.seen && !dismissedMessages.has(key)) { const exists = unreadChatQueue.find(x => x.key === key); if(!exists) { unreadChatQueue.push({ key: key, orderId: orderId, riderName: riderName || "Rider", riderId: msg.senderId, text: msg.text }); updateNavNotification(); } } } } }); chatListeners[orderId] = listener; }
+        function listenChat(orderId, riderName) {
+    if (chatListeners[orderId]) return;
+    const chatRef = ref(db, `chats/${orderId}/messages`);
+    const listener = onChildAdded(chatRef, (snapshot) => {
+        const msg = snapshot.val();
+        const key = snapshot.key;
+
+        if (activeChatOrderId === orderId) {
+            renderMessage(msg, key);
+            if (msg.senderId !== currentUser.uid && !msg.seen) {
+                update(ref(db, `chats/${orderId}/messages/${key}`), { seen: true });
+                dismissedMessages.add(key);
+            }
+        }
+        if (msg.senderId !== currentUser.uid) {
+            
+            // ============ ADD THIS CODE BLOCK ============
+            // Check if the native Android interface exists
+            if (typeof window.Android !== "undefined" && window.Android.showNotification) {
+                // If the message is not from the current user and the chat window is not open
+                if (activeChatOrderId !== orderId) {
+                     window.Android.showNotification('New Message from ' + (riderName || "Rider"), msg.text);
+                }
+            }
+            // ===========================================
+
+            if (activeChatOrderId !== orderId) {
+                if (!msg.seen && !dismissedMessages.has(key)) {
+                    const exists = unreadChatQueue.find(x => x.key === key);
+                    if (!exists) {
+                        unreadChatQueue.push({ key: key, orderId: orderId, riderName: riderName || "Rider", riderId: msg.senderId, text: msg.text });
+                        updateNavNotification();
+                    }
+                }
+            }
+        }
+    });
+    chatListeners[orderId] = listener;
+}
         
         function updateNavNotification() {
             const dot = document.getElementById('nav-orders-dot');
