@@ -42,11 +42,11 @@
 
         /* OVERSCROLL FIX AND SCROLLBAR HIDE */
         html, body { 
-            overscroll-behavior-y: none; /* Stops the rubber-band bouncing effect */
-            scrollbar-width: none; /* Firefox */
+            overscroll-behavior-y: none; 
+            scrollbar-width: none; 
         }
         ::-webkit-scrollbar { 
-            display: none; /* Chrome, Safari, Opera */
+            display: none; 
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
@@ -224,7 +224,6 @@
         .menu-hero-title { font-size: 1.8rem; font-weight: 800; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         .menu-hero-desc { font-size: 0.9rem; opacity: 0.9; margin-top: 5px; }
         
-        /* PADDING BOTTOM ADDED TO FIX NAVBAR HIDING LAST ITEM */
         .menu-product-container { background: var(--bg-body); border-radius: 24px 24px 0 0; margin-top: -20px; position: relative; z-index: 5; padding: 20px; padding-bottom: 120px; }
         
         #menu-sticky-header {
@@ -543,26 +542,61 @@
         .bengali-warning { background: #fff3e0; color: #e65100; font-size: 0.85rem; padding: 10px; border-radius: 8px; margin: 15px 15px 0 15px; border: 1px solid #ffe0b2; line-height: 1.5; }
         [data-theme="dark"] .bengali-warning { background: rgba(230, 81, 0, 0.15); color: #ffcc80; border-color: rgba(230, 81, 0, 0.3); }
 
-        /* MODIFIED CHAT ICON */
+        /* MODIFIED CHAT ICON - ANIMATION AND RED DOT */
         .chat-btn-circle { 
-            width: 45px; 
-            height: 45px; 
-            border-radius: 12px;
+            width: 50px; 
+            height: 50px; 
+            border-radius: 50%;
             background: var(--bg-card); 
             color: var(--primary); 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            border: 1.5px solid var(--text-main);
+            border: 2px solid var(--primary);
             box-shadow: 0 8px 20px rgba(255, 87, 34, 0.3);
             cursor: pointer; 
-            transition: 0.2s; 
+            transition: 0.3s; 
             position: relative; 
             margin-left: 10px; 
         }
+        .chat-btn-circle i { font-size: 1.3rem !important; }
         .chat-btn-circle:active { transform: scale(0.95); box-shadow: 0 2px 8px rgba(255, 87, 34, 0.2); }
+        
+        /* Floating Animation */
+        @keyframes floating-chat {
+            0% { transform: translateY(0px); box-shadow: 0 5px 15px rgba(255,87,34,0.2); }
+            50% { transform: translateY(-8px); box-shadow: 0 15px 25px rgba(255,87,34,0.4); }
+            100% { transform: translateY(0px); box-shadow: 0 5px 15px rgba(255,87,34,0.2); }
+        }
+        .chat-btn-circle.has-new-msg {
+            animation: floating-chat 1.5s infinite ease-in-out;
+            background: #FFF3E0;
+        }
 
-        /* NEW RIDER INFO SECTION IN ORDER CARD (ABOVE VIEW ITEMS) */
+        /* Red Dot */
+        .chat-red-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            background-color: var(--danger);
+            border-radius: 50%;
+            border: 2px solid var(--bg-card);
+            display: none;
+            z-index: 10;
+        }
+        .chat-btn-circle.has-new-msg .chat-red-dot {
+            display: block;
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(244, 67, 54, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+        }
+
+        /* NEW RIDER INFO SECTION IN ORDER CARD */
         .rider-info-box {
             display: flex; align-items: center; gap: 10px;
             padding: 12px 15px; border-top: 1px solid var(--border-color); border-bottom: none;
@@ -1266,7 +1300,7 @@
         </div>
     </div>
     
-    <!-- LIFETIME SAVINGS POPUP (UPDATED) -->
+    <!-- LIFETIME SAVINGS POPUP -->
     <div id="savings-popup" class="savings-popup-overlay">
         <div class="savings-popup-content">
             <div class="sav-pop-icon"><i class="fas fa-hand-holding-heart"></i></div>
@@ -1302,7 +1336,7 @@
 
     <div id="splash-screen">
         <div class="splash-logo-container">
-            <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-03-06.21.30.png?alt=media&token=64b1afb2-8d80-4b57-a1e8-d582758a2d67" class="splash-logo-img" alt="Logo">
+            <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-03-06.21.30.png?alt=media&token=64b1afb2-8d80-4b57-a1e8-d582758a2d67" class="splash-logo-img" alt="Logo" onerror="this.onerror=null; this.src='https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-03-06.21.30.png?alt=media&token=64b1afb2-8d80-4b57-a1e8-d582758a2d67';">
         </div>
         <div class="splash-title">Money Food</div>
         <div class="splash-tagline">Premium Taste, Premium Speed</div>
@@ -1310,7 +1344,7 @@
 
     <div id="page-login" class="auth-container hidden">
         <div class="auth-logo-box">
-            <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c">
+            <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c" onerror="this.onerror=null; this.src='https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c';">
             <h2 class="auth-title">Welcome Back</h2>
             <p class="auth-subtitle">Login to satisfy your hunger</p>
         </div>
@@ -1333,7 +1367,7 @@
 
     <div id="page-register" class="auth-container hidden">
         <div class="auth-logo-box">
-            <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c">
+            <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c" onerror="this.onerror=null; this.src='https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c';">
             <h2 class="auth-title">Create Account</h2>
             <p class="auth-subtitle">Join us for premium food delivery</p>
         </div>
@@ -1440,11 +1474,10 @@
         </div>
     </div>
 
-
     <div id="app-layout" class="hidden">
         <header id="main-header">
             <div class="app-logo">
-                <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c" alt="Logo">
+                <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c" alt="Logo" onerror="this.onerror=null; this.src='https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c';">
                 Money Food
             </div>
             <div class="header-right-tools">
@@ -2218,6 +2251,13 @@
             initApp();
             syncRewardUI();
             checkMailNotifications();
+            
+            // BACKGROUND SYNC - Instantly fetch new data when app is brought to foreground
+            document.addEventListener("visibilitychange", function() {
+                if (document.visibilityState === 'visible') {
+                    listenToOrders();
+                }
+            });
         }
 
         async function initApp(){fetchSettings();fetchRootCategories();fetchProducts();fetchRestaurants();}
@@ -2724,7 +2764,7 @@
                 
                 return `<div class="restaurant-card ${isOffline ? 'offline' : ''}" onclick="${isOffline ? '' : `showPage('restaurant-menu', '${r.id}')`}">
                     <div class="love-icon ${isLoved ? 'active' : ''}" onclick="toggleLove(event, '${r.id}')"><i class="fas fa-heart"></i></div>
-                    <img src="${r.bannerImage}" class="restaurant-banner">
+                    <img src="${r.bannerImage}" onerror="this.onerror=null; this.src='${r.bannerImage}';" class="restaurant-banner">
                     <div class="restaurant-info">
                         <div class="restaurant-name">${r.name}</div>
                         <div class="restaurant-meta">
@@ -2810,7 +2850,7 @@
                 if (p.active === false) return '';
                 const inCart = cart.find(x=>x.productId===p.id);
                 const qtyHtml = inCart ? `<span style="background:var(--primary); color:white; padding:2px 8px; border-radius:10px; font-size:0.7rem;">${inCart.qty} in cart</span>` : '';
-                return `<div class="product-card" onclick="openProductModal('${p.id}')"><img src="${p.image}" class="product-img"><div class="product-info"><div class="product-name">${p.name}</div><div class="product-meta"><span class="product-price">${formatPrice(p.price)}</span>${qtyHtml}<button class="btn-add" style="pointer-events:none"><i class="fas fa-plus"></i></button></div></div></div>`
+                return `<div class="product-card" onclick="openProductModal('${p.id}')"><img src="${p.image}" onerror="this.onerror=null; this.src='${p.image}';" class="product-img"><div class="product-info"><div class="product-name">${p.name}</div><div class="product-meta"><span class="product-price">${formatPrice(p.price)}</span>${qtyHtml}<button class="btn-add" style="pointer-events:none"><i class="fas fa-plus"></i></button></div></div></div>`
             }).join('') || '<p>No items found.</p>';
         }
 
@@ -3256,22 +3296,22 @@
         let riderHtml = '';
         if(d.riderId && !isHist) {
             listenChat(d.id, d.riderName || 'Rider');
-            // Premium Rider Section (Placed above the items list toggle)
             riderHtml = `
             <div class="rider-info-box">
-                <img src="${d.riderAvatar || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTA0Jy_WMdy17dp2Glp0LYrqzhiCWsk4ffqjXHX0vNhg&s'}" class="rider-avatar-small">
+                <img src="${d.riderAvatar || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTA0Jy_WMdy17dp2Glp0LYrqzhiCWsk4ffqjXHX0vNhg&s'}" class="rider-avatar-small" onerror="this.onerror=null; this.src='${d.riderAvatar}';">
                 <div class="rider-details-text">${d.riderName || 'Rider'}</div>
                 <a href="tel:${d.riderPhone || ''}" class="btn-rider-action btn-call-rider"><i class="fas fa-phone-alt"></i></a>
                 <div class="btn-rider-action btn-msg-rider chat-btn-circle" id="chat-btn-${d.id}" onclick="openChat('${d.id}', '${d.riderId}', '${d.riderName}')">
-                    <i class="fas fa-comment-dots" style="color:var(--primary); box-shadow:none; font-size:1rem"></i>
+                    <i class="fas fa-comment-dots"></i>
+                    <div class="chat-red-dot"></div>
                 </div>
             </div>`;
         }
 
-        const itemsHtml = d.items.map(i => `<div class="item-row"><img src="${i.image}" class="item-thumb"><div class="item-details"><div>${i.qty}x ${i.name}</div></div><div class="item-price">${formatPrice(i.price * i.qty)}</div></div>`).join(''); let emergencyBadge = d.deliveryPriority === 'fast' ? `<span style="background:#FF3D00; color:white; font-size:0.7rem; padding:2px 6px; border-radius:4px; margin-left:10px;">EMERGENCY ⚡</span>` : ''; const restaurantName = restaurants.find(r => r.id === d.restaurantId)?.name || 'Restaurant'; 
+        const itemsHtml = d.items.map(i => `<div class="item-row"><img src="${i.image}" onerror="this.onerror=null; this.src='${i.image}';" class="item-thumb"><div class="item-details"><div>${i.qty}x ${i.name}</div></div><div class="item-price">${formatPrice(i.price * i.qty)}</div></div>`).join(''); let emergencyBadge = d.deliveryPriority === 'fast' ? `<span style="background:#FF3D00; color:white; font-size:0.7rem; padding:2px 6px; border-radius:4px; margin-left:10px;">EMERGENCY ⚡</span>` : ''; const restaurantName = restaurants.find(r => r.id === d.restaurantId)?.name || 'Restaurant'; 
         
         const html = `<div class="order-card-new">
-            <img src="${bannerUrl}" class="order-banner">
+            <img src="${bannerUrl}" class="order-banner" onerror="this.onerror=null; this.src='${bannerUrl}';">
             <div class="order-header-info">
                 <div style="display:flex; justify-content:space-between; align-items:center">
                     <div>
@@ -3317,6 +3357,12 @@
             activeChatRiderId = riderId; 
             document.getElementById('chat-rider-name').innerText = riderName || "Rider"; 
             document.getElementById('chat-messages').innerHTML = '<p id="no-chat-msg" style="text-align:center; color:var(--text-muted); padding:20px;">No messages</p>';
+            
+            const chatBtn = document.getElementById(`chat-btn-${orderId}`);
+            if (chatBtn) {
+                chatBtn.classList.remove('has-new-msg');
+            }
+
             unreadChatQueue = unreadChatQueue.filter(x => x.orderId !== orderId); 
             updateNavNotification(); 
             document.getElementById('chat-modal').style.opacity = '1'; 
@@ -3326,6 +3372,8 @@
             listenTyping(orderId, riderId); 
         };
         window.closeChat = () => { document.getElementById('chat-modal').style.opacity = '0'; document.getElementById('chat-modal').style.pointerEvents = 'none'; activeChatOrderId = null; };
+        
+        let notifiedMessages = JSON.parse(localStorage.getItem('notifiedMessages')) || [];
         const chatListeners = {};
         function listenChat(orderId, riderName) { 
             if(chatListeners[orderId]) return; 
@@ -3341,21 +3389,24 @@
                         dismissedMessages.add(key); 
                     } 
                 } 
+                
                 if (msg.senderId !== currentUser.uid) { 
-                    
-                    if (typeof window.Android !== "undefined" && window.Android.showNotification) {
-                        if (activeChatOrderId !== orderId) {
-                             window.Android.showNotification('New Message from ' + (riderName || "Rider"), msg.text);
-                        }
-                    }
-
                     if (activeChatOrderId !== orderId) { 
                         if (!msg.seen && !dismissedMessages.has(key)) { 
                             const exists = unreadChatQueue.find(x => x.key === key); 
                             if(!exists) { 
                                 unreadChatQueue.push({ key: key, orderId: orderId, riderName: riderName || "Rider", riderId: msg.senderId, text: msg.text }); 
-                                updateNavNotification(); 
-                            } 
+                                updateNavNotification();
+                                const chatBtn = document.getElementById(`chat-btn-${orderId}`);
+                                if (chatBtn) chatBtn.classList.add('has-new-msg');
+                            }
+                            
+                            // Check if we should send a native notification
+                            if (typeof window.Android !== "undefined" && window.Android.showNotification && !notifiedMessages.includes(key)) {
+                                window.Android.showNotification('New Message from ' + (riderName || "Rider"), msg.text);
+                                notifiedMessages.push(key);
+                                localStorage.setItem('notifiedMessages', JSON.stringify(notifiedMessages));
+                            }
                         } 
                     } 
                 } 
