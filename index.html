@@ -2207,9 +2207,11 @@
                     document.getElementById('profile-display-name').innerText = "Guest"; document.getElementById('profile-display-email').innerText = "";
                     document.getElementById('profile-avatar-img').src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
                     document.getElementById('orders-list').innerHTML = ""; document.getElementById('history-list').innerHTML = "";
+                    toggleLoader(false);
                 }
             }, 500);
         });
+
         async function initApp(){fetchSettings();fetchRootCategories();fetchProducts();fetchRestaurants();}
         
         window.handleGoogleLogin = () => {
@@ -2329,7 +2331,10 @@
         
         function fetchUserProfile(uid){ 
             onValue(ref(db,`users/${uid}`), s=>{ 
-                if(!s.exists()) return; 
+                if(!s.exists()) {
+                    toggleLoader(false);
+                    return; 
+                }
                 currentUserProfile = s.val(); 
                 const p = currentUserProfile.profile || {};
                 const stats = currentUserProfile.stats || { totalSpent: 0, totalCompetitorCost: 0, deliveryCostSaved: 0 };
@@ -2362,6 +2367,8 @@
                 renderLoyaltyTrack(p.deliveredOrdersCount || 0);
                 renderLoyaltyTrackRewardPage(p.deliveredOrdersCount || 0);
                 renderAddressCardUI(); 
+                
+                toggleLoader(false);
             }); 
         }
         
@@ -3306,15 +3313,11 @@
                 } 
                 if (msg.senderId !== currentUser.uid) { 
                     
-                    // ============================================================
-                    // CONNECTION TO ANDROID APP FOR NATIVE NOTIFICATIONS
-                    // ============================================================
                     if (typeof window.Android !== "undefined" && window.Android.showNotification) {
                         if (activeChatOrderId !== orderId) {
                              window.Android.showNotification('New Message from ' + (riderName || "Rider"), msg.text);
                         }
                     }
-                    // ============================================================
 
                     if (activeChatOrderId !== orderId) { 
                         if (!msg.seen && !dismissedMessages.has(key)) { 
