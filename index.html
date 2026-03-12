@@ -2015,7 +2015,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithCredential } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
         import { getDatabase, ref, onValue, set, push, update, remove, serverTimestamp, get, onChildAdded, onChildChanged, off } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
         
         const firebaseConfig = {
@@ -2212,29 +2212,50 @@
         });
         async function initApp(){fetchSettings();fetchRootCategories();fetchProducts();fetchRestaurants();}
         
-        window.handleGoogleLogin = async () => {
-            const provider = new GoogleAuthProvider();
+        window.handleGoogleLogin = () => {
             toggleLoader(true);
+            if (typeof window.Android !== "undefined" && window.Android.startGoogleLogin) {
+                window.Android.startGoogleLogin();
+            } else {
+                handleWebGoogleLogin();
+            }
+        };
+
+        async function handleWebGoogleLogin() {
+            const provider = new GoogleAuthProvider();
             try {
                 const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-                const userRef = ref(db, `users/${user.uid}/profile`);
-                const snap = await get(userRef);
-                if (!snap.exists()) {
-                    await set(userRef, { 
-                        email: user.email, 
-                        displayName: user.displayName || 'User', 
-                        avatarUrl: user.photoURL || '', 
-                        createdAt: serverTimestamp() 
-                    });
-                }
-                showToast("Logged in with Google");
+                await processGoogleUser(result.user);
             } catch (e) {
                 showCustomAlert(e.message, "Google Login Failed");
-            } finally {
+                toggleLoader(false);
+            }
+        }
+
+        window.handleNativeGoogleLogin = async (idToken) => {
+            try {
+                const credential = GoogleAuthProvider.credential(idToken);
+                const result = await signInWithCredential(auth, credential);
+                await processGoogleUser(result.user);
+            } catch (error) {
+                showCustomAlert(error.message, "Native Google Auth Failed");
                 toggleLoader(false);
             }
         };
+
+        async function processGoogleUser(user) {
+            const userRef = ref(db, `users/${user.uid}/profile`);
+            const snap = await get(userRef);
+            if (!snap.exists()) {
+                await set(userRef, { 
+                    email: user.email, 
+                    displayName: user.displayName || 'User', 
+                    avatarUrl: user.photoURL || '', 
+                    createdAt: serverTimestamp() 
+                });
+            }
+            showToast("Logged in with Google");
+        }
 
         window.handleLogin=async()=>{const e=document.getElementById('login-email').value,p=document.getElementById('login-password').value;if(!e||!p)return;toggleLoader(true);try{await signInWithEmailAndPassword(auth,e,p);}catch(e){showCustomAlert(e.message, "Login Failed");}finally{toggleLoader(false);}};
         window.handleSignup=async()=>{ const n=document.getElementById('reg-name').value, e=document.getElementById('reg-email').value,p=document.getElementById('reg-password').value; if(!e||!p||!n)return;toggleLoader(true);try{const c=await createUserWithEmailAndPassword(auth,e,p);await set(ref(db,`users/${c.user.uid}/profile`),{email:e,displayName:n,createdAt:serverTimestamp()});showToast("Account created");}catch(e){showCustomAlert(e.message, "Signup Failed");}finally{toggleLoader(false);}};
