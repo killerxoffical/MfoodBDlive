@@ -2191,26 +2191,34 @@
                 xhr.send(file);
             });
         }
-
-        onAuthStateChanged(auth, u=>{
-            currentUser=u;
-            setTimeout(() => {
-                if(u){
-                    document.getElementById('page-login').classList.add('hidden'); document.getElementById('page-register').classList.add('hidden'); document.getElementById('app-layout').classList.remove('hidden');
-                    document.getElementById('orders-list').innerHTML = ""; document.getElementById('history-list').innerHTML = "";
-                    fetchUserProfile(u.uid); initApp();
-                    syncRewardUI();
-                    checkMailNotifications();
-                } else {
-                    document.getElementById('page-login').classList.remove('hidden'); document.getElementById('app-layout').classList.add('hidden');
-                    currentUserProfile = {};
-                    document.getElementById('profile-display-name').innerText = "Guest"; document.getElementById('profile-display-email').innerText = "";
-                    document.getElementById('profile-avatar-img').src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-                    document.getElementById('orders-list').innerHTML = ""; document.getElementById('history-list').innerHTML = "";
-                    toggleLoader(false);
-                }
-            }, 500);
+        
+        onAuthStateChanged(auth, u => {
+            currentUser = u;
+            if (u) {
+                // User is signed in. This is for page reloads or after any login.
+                setupUserSession(u);
+            } else {
+                // User is signed out.
+                document.getElementById('page-login').classList.remove('hidden');
+                document.getElementById('app-layout').classList.add('hidden');
+                document.getElementById('page-register').classList.add('hidden');
+                toggleLoader(false); 
+            }
         });
+
+        function setupUserSession(user) {
+            document.getElementById('page-login').classList.add('hidden');
+            document.getElementById('page-register').classList.add('hidden');
+            document.getElementById('app-layout').classList.remove('hidden');
+
+            document.getElementById('orders-list').innerHTML = "";
+            document.getElementById('history-list').innerHTML = "";
+
+            fetchUserProfile(user.uid); 
+            initApp();
+            syncRewardUI();
+            checkMailNotifications();
+        }
 
         async function initApp(){fetchSettings();fetchRootCategories();fetchProducts();fetchRestaurants();}
         
@@ -2259,8 +2267,30 @@
             showToast("Logged in with Google");
         }
 
-        window.handleLogin=async()=>{const e=document.getElementById('login-email').value,p=document.getElementById('login-password').value;if(!e||!p)return;toggleLoader(true);try{await signInWithEmailAndPassword(auth,e,p);}catch(e){showCustomAlert(e.message, "Login Failed");}finally{toggleLoader(false);}};
-        window.handleSignup=async()=>{ const n=document.getElementById('reg-name').value, e=document.getElementById('reg-email').value,p=document.getElementById('reg-password').value; if(!e||!p||!n)return;toggleLoader(true);try{const c=await createUserWithEmailAndPassword(auth,e,p);await set(ref(db,`users/${c.user.uid}/profile`),{email:e,displayName:n,createdAt:serverTimestamp()});showToast("Account created");}catch(e){showCustomAlert(e.message, "Signup Failed");}finally{toggleLoader(false);}};
+        window.handleLogin=async()=>{
+            const e=document.getElementById('login-email').value,p=document.getElementById('login-password').value;
+            if(!e||!p)return;
+            toggleLoader(true);
+            try{
+                await signInWithEmailAndPassword(auth,e,p);
+            }catch(e){
+                showCustomAlert(e.message, "Login Failed");
+                toggleLoader(false);
+            }
+        };
+        window.handleSignup=async()=>{ 
+            const n=document.getElementById('reg-name').value, e=document.getElementById('reg-email').value,p=document.getElementById('reg-password').value; 
+            if(!e||!p||!n)return;
+            toggleLoader(true);
+            try{
+                const c=await createUserWithEmailAndPassword(auth,e,p);
+                await set(ref(db,`users/${c.user.uid}/profile`),{email:e,displayName:n,createdAt:serverTimestamp()});
+                showToast("Account created");
+            }catch(e){
+                showCustomAlert(e.message, "Signup Failed");
+                toggleLoader(false);
+            }
+        };
         window.handleLogout=()=> { toggleLoader(true); localStorage.removeItem('cart'); cart = []; document.getElementById('orders-list').innerHTML = ""; document.getElementById('history-list').innerHTML = ""; document.getElementById('global-cart-items').innerHTML = ""; signOut(auth).then(() => { window.location.reload(); }); };
         
         window.handleForgotPassword = async () => {
