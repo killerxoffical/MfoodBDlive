@@ -3373,8 +3373,37 @@
         };
         window.closeChat = () => { document.getElementById('chat-modal').style.opacity = '0'; document.getElementById('chat-modal').style.pointerEvents = 'none'; activeChatOrderId = null; };
         
-        let notifiedMessages = JSON.parse(localStorage.getItem('notifiedMessages')) || [];
+        let let notifiedMessages = JSON.parse(localStorage.getItem('notifiedMessages')) || [];
         const chatListeners = {};
+        
+        // অ্যাপ যখন ব্যাকগ্রাউন্ড থেকে সামনে আসবে, তখন ডাটা সিঙ্ক করার জন্য
+        document.addEventListener("visibilitychange", function() {
+            if (document.visibilityState === 'visible' && currentUser) {
+                listenToOrders();
+            }
+        });
+
+        window.openChat = (orderId, riderId, riderName) => { 
+            activeChatOrderId = orderId; 
+            activeChatRiderId = riderId; 
+            document.getElementById('chat-rider-name').innerText = riderName || "Rider"; 
+            document.getElementById('chat-messages').innerHTML = '<p id="no-chat-msg" style="text-align:center; color:var(--text-muted); padding:20px;">No messages</p>';
+            
+            // অ্যানিমেশন এবং ডট রিমুভ করা
+            const chatBtn = document.getElementById(`chat-btn-${orderId}`);
+            if (chatBtn) {
+                chatBtn.classList.remove('has-new-msg');
+            }
+
+            unreadChatQueue = unreadChatQueue.filter(x => x.orderId !== orderId); 
+            updateNavNotification(); 
+            document.getElementById('chat-modal').style.opacity = '1'; 
+            document.getElementById('chat-modal').style.pointerEvents = 'auto'; 
+            if (chatListeners[orderId]) { off(ref(db, `chats/${orderId}/messages`)); delete chatListeners[orderId]; } 
+            listenChat(orderId, riderName); 
+            listenTyping(orderId, riderId); 
+        };
+
         function listenChat(orderId, riderName) { 
             if(chatListeners[orderId]) return; 
             const chatRef = ref(db, `chats/${orderId}/messages`); 
@@ -3390,24 +3419,23 @@
                     } 
                 } 
                 
-                if (msg.senderId !== currentUser.uid) { 
+                if (msg.senderId !== currentUser.uid && !msg.seen) {
+                    // সিন না করা নতুন মেসেজ আসলেই কেবল নোটিফিকেশন ও অ্যানিমেশন হবে
                     if (activeChatOrderId !== orderId) { 
-                        if (!msg.seen && !dismissedMessages.has(key)) { 
-                            const exists = unreadChatQueue.find(x => x.key === key); 
-                            if(!exists) { 
-                                unreadChatQueue.push({ key: key, orderId: orderId, riderName: riderName || "Rider", riderId: msg.senderId, text: msg.text }); 
-                                updateNavNotification();
-                                const chatBtn = document.getElementById(`chat-btn-${orderId}`);
-                                if (chatBtn) chatBtn.classList.add('has-new-msg');
-                            }
-                            
-                            // Check if we should send a native notification
-                            if (typeof window.Android !== "undefined" && window.Android.showNotification && !notifiedMessages.includes(key)) {
-                                window.Android.showNotification('New Message from ' + (riderName || "Rider"), msg.text);
-                                notifiedMessages.push(key);
-                                localStorage.setItem('notifiedMessages', JSON.stringify(notifiedMessages));
-                            }
-                        } 
+                        const exists = unreadChatQueue.find(x => x.key === key); 
+                        if(!exists) { 
+                            unreadChatQueue.push({ key: key, orderId: orderId, riderName: riderName || "Rider", riderId: msg.senderId, text: msg.text }); 
+                            updateNavNotification();
+                            const chatBtn = document.getElementById(`chat-btn-${orderId}`);
+                            if (chatBtn) chatBtn.classList.add('has-new-msg');
+                        }
+                        
+                        if (typeof window.Android !== "undefined" && window.Android.showNotification && !notifiedMessages.includes(key)) {
+                            window.Android.showNotification('New Message from ' + (riderName || "Rider"), msg.text);
+                            notifiedMessages.push(key);
+                            if(notifiedMessages.length > 50) notifiedMessages.shift(); // পুরনো মেসেজ আইডি রিমুভ করা
+                            localStorage.setItem('notifiedMessages', JSON.stringify(notifiedMessages));
+                        }
                     } 
                 } 
             }); 
