@@ -8,6 +8,13 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet Map CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Lottie Animation Script -->
+    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.3/dist/dotlottie-wc.js" type="module"></script>
 
     <style>
         /* GLOBAL VARIABLES & THEME */
@@ -128,10 +135,38 @@
         .form-control { width: 100%; padding: 14px; border: 1px solid var(--border-color); border-radius: 12px; outline: none; transition: 0.3s; font-size: 1rem; background: var(--input-bg); margin-bottom: 15px; color: var(--text-main); }
         .form-control:focus { border-color: var(--primary); background: var(--bg-card); box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1); }
         
+        .password-wrapper { position: relative; width: 100%; margin-bottom: 15px; }
+        .password-wrapper .form-control { margin-bottom: 0; padding-right: 45px; }
+        .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); cursor: pointer; z-index: 5; padding: 5px; font-size: 1.1rem; transition: 0.2s; }
+        .toggle-password:active { transform: translateY(-50%) scale(0.9); }
+
         /* Header Styles */
         header { background: var(--bg-card); padding: 8px 15px; height: 65px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 15px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); border-radius: 0 0 20px 20px; }
-        .app-logo { font-size: 1.2rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; }
-        .app-logo img { width: 48px; height: 48px; object-fit: contain; }
+        .app-logo { font-size: 1.2rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; letter-spacing: -0.5px; position: relative; }
+        .app-logo dotlottie-wc { object-fit: contain; }
+        .app-logo > div { position: relative; z-index: 1; }
+
+        /* Custom Page Header for Orders, History, Cart */
+        .custom-page-header {
+            background: var(--bg-card);
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            height: 65px;
+        }
+        .header-back-btn {
+            width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--input-bg); color: var(--text-main); cursor: pointer; border: 1px solid var(--border-color);
+        }
+        .header-title {
+            font-size: 1.2rem; font-weight: 700; color: var(--text-main); flex: 1; text-align: left;
+        }
         
         .container { padding: 15px; max-width: 600px; margin: 0 auto; }
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
@@ -185,9 +220,11 @@
             z-index: 20;
             transition: 0.3s;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 2px solid var(--primary);
         }
         .love-icon.active {
-            color: var(--danger);
+            color: var(--primary);
+            background: rgba(255, 87, 34, 0.1);
             animation: pulse-heart 0.3s ease-in-out;
         }
         @keyframes pulse-heart { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
@@ -203,7 +240,7 @@
         .home-category-nav::-webkit-scrollbar { display: none; }
         .home-cat-pill {
             padding: 10px 20px; background: var(--bg-card);
-            border: 1px solid var(--border-color); border-radius: 30px;
+            border: 1px solid var(--primary); border-radius: 30px;
             white-space: nowrap; font-size: 0.9rem; font-weight: 600;
             color: var(--text-muted); cursor: pointer;
             transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.03);
@@ -217,13 +254,13 @@
         #page-restaurant-menu { padding: 0; background-color: var(--bg-body); }
         #page-restaurant-menu .container { padding: 0; }
         
-        .menu-hero-section { position: relative; height: 250px; overflow: hidden; }
-        .menu-hero-bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: opacity 0.3s; }
+        .menu-hero-section { position: relative; height: 190px; overflow: hidden; }
+        .menu-hero-bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: opacity 0.3s; filter: blur(0.5px); }
         .menu-hero-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.1)); }
         .menu-hero-content { position: absolute; bottom: 20px; left: 20px; right: 20px; color: white; transition: opacity 0.3s; }
         .menu-hero-title { font-size: 1.8rem; font-weight: 800; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         .menu-hero-desc { font-size: 0.9rem; opacity: 0.9; margin-top: 5px; }
-        
+
         .menu-product-container { background: var(--bg-body); border-radius: 24px 24px 0 0; margin-top: -20px; position: relative; z-index: 5; padding: 20px; padding-bottom: 120px; }
         
         #menu-sticky-header {
@@ -241,10 +278,10 @@
             border-bottom: 1px solid var(--border-color);
         }
         .menu-hero-btn {
-            width: 48px; height: 48px; background: rgba(0,0,0,0.28);
+            width: 40px; height: 40px; background: rgba(0,0,0,0.28);
             backdrop-filter: blur(8px); border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 1.12rem; cursor: pointer;
+            color: white; font-size: 1rem; cursor: pointer;
             border: 1px solid rgba(255,255,255,0.22);
             transition: transform 0.2s, background 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s;
             pointer-events: auto;
@@ -258,11 +295,12 @@
         }
         .menu-hero-btn:active { transform: scale(0.95); }
         .menu-cart-icon { position: relative; }
-        .menu-cart-icon i { font-size: 1.3rem; }
+        .menu-cart-icon i { font-size: 1.1rem; }
         .menu-cart-badge { position: absolute; top: -4px; right: -4px; background: var(--danger); color: white; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; border: 2px solid var(--bg-card); display: none; }
+        
         #sticky-header-title {
             position: absolute; left: 50%; transform: translateX(-50%); text-align: center;
-            opacity: 0; transition: opacity 0.3s ease; pointer-events: none; width: calc(100% - 150px);
+            opacity: 0; transition: opacity 0.3s ease; pointer-events: none; width: calc(100% - 180px);
         }
         .sticky-main-title { font-size: 1.02rem; font-weight: 800; color: var(--text-main); display: block; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .sticky-sub-title { font-size: 0.75rem; font-weight: 700; color: var(--primary); display: block; margin-top: 2px; }
@@ -272,7 +310,7 @@
         #page-global-cart { padding: 0; }
         #global-cart-items { padding: 20px; }
 
-        .cart-restaurant-summary { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 15px; margin-bottom: 20px; box-shadow: var(--shadow); }
+        .cart-restaurant-summary { background: var(--bg-card); border: 1px solid rgba(255, 87, 34, 0.3); border-radius: 16px; padding: 15px; margin-bottom: 20px; box-shadow: var(--shadow); }
         .crs-header { display: flex; align-items: center; gap: 12px; }
         .crs-logo { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; border: 2px solid var(--text-main); }
         .crs-name { font-size: 1.2rem; font-weight: 700; flex: 1; }
@@ -305,6 +343,57 @@
         .track-line { position: absolute; top: 50%; left: 0; width: 100%; height: 2px; background: rgba(255,255,255,0.2); z-index: -1; transform: translateY(-50%); }
         .track-progress { position: absolute; top: 50%; left: 0; height: 2px; background: white; z-index: -1; transform: translateY(-50%); transition: width 0.5s; }
         @keyframes pulse-gold { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
+
+        /* SLIDER CSS */
+        .home-slider-container {
+            width: 100%;
+            height: 180px; 
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+            background: var(--input-bg);
+        }
+        .slider-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.4s ease-in-out;
+            touch-action: pan-y;
+        }
+        .slider-item {
+            min-width: 100%;
+            height: 100%;
+            position: relative;
+            cursor: pointer;
+        }
+        .slider-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .slider-dots {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            z-index: 5;
+        }
+        .slider-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            transition: 0.3s;
+        }
+        .slider-dot.active {
+            background: white;
+            width: 20px;
+            border-radius: 4px;
+        }
 
         .file-upload-wrapper { position: relative; width: 100%; height: 120px; border: 2px dashed var(--border-color); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--input-bg); cursor: pointer; transition: 0.3s; }
         .custom-file-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
@@ -360,13 +449,20 @@
         .checkmark-circle { width: 80px; height: 80px; border-radius: 50%; border: 4px solid #00C853; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         .checkmark-icon { font-size: 40px; color: #00C853; }
         @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
-        #splash-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #FF5722, #FF8A65); z-index: 5000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; transition: opacity 0.8s ease-out; }
+        
+        /* PREMIUM SPLASH SCREEN UPGRADE */
+        #splash-screen { 
+            position: fixed; inset: 0; z-index: 5000; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; 
+            transition: opacity 0.8s ease-out; 
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+        }
         #splash-screen.fade-out { opacity: 0; pointer-events: none; }
-        .splash-logo-container { width: 180px; height: 180px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: pulse 2s infinite; margin-bottom: 25px; padding: 0; overflow: hidden; }
-        .splash-logo-img { width: 100%; height: 100%; object-fit: cover; }
-        .splash-title { font-size: 2.2rem; font-weight: 800; letter-spacing: 1px; margin-bottom: 5px; }
-        .splash-tagline { font-size: 1.1rem; opacity: 0.9; font-weight: 300; }
-        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
+        .splash-logo-container { width: 220px; height: 220px; background: transparent; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: none; animation: none; margin-bottom: 10px; padding: 0; overflow: visible; position: relative; }
+        .splash-logo-container::after { content: ''; position: absolute; inset: 20px; background: rgba(255, 87, 34, 0.15); border-radius: 50%; filter: blur(30px); z-index: -1; animation: splashPulse 3s infinite alternate; }
+        @keyframes splashPulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.2); opacity: 1; } }
+        .splash-title { font-size: 2.4rem; font-weight: 800; letter-spacing: 2px; margin-bottom: 5px; color: #fff; text-transform: uppercase; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .splash-tagline { font-size: 1rem; opacity: 0.8; font-weight: 400; color: #ccc; letter-spacing: 4px; text-transform: uppercase; }
 
         .profile-premium-card { background: linear-gradient(135deg, #1e1e1e, #2a2a2a); border-radius: 24px; padding: 25px; display: flex; align-items: center; gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden; margin-bottom: 25px; }
         [data-theme="light"] .profile-premium-card { background: linear-gradient(135deg, #ffffff, #f8f9fa); border: 1px solid #eee; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
@@ -422,7 +518,7 @@
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        .cr-item-row { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid var(--border-color); }
+        .cr-item-row { display: flex; align-items: center; gap: 15px; padding: 12px; border: 1px solid rgba(255, 87, 34, 0.3); border-radius: 12px; margin-bottom: 10px; background: var(--bg-card); }
         .cr-item-info { flex: 1; }
         .cr-item-name { font-size: 1rem; font-weight: 600; }
         .cr-item-price { font-size: 0.85rem; color: var(--text-muted); }
@@ -438,6 +534,8 @@
         .product-price { color: var(--primary); font-weight: 700; font-size: 1.05rem; }
         .btn-add { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; box-shadow: 0 2px 8px rgba(255, 87, 34, 0.3); }
 
+        .checkout-item-box { display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.9rem; border: 1px solid rgba(255, 87, 34, 0.3); padding: 10px; border-radius: 10px; background: var(--bg-card); align-items: center;}
+        
         .checkout-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--border-color); }
         .checkout-item-row:last-child { border-bottom: none; }
         .co-item-name { font-size: 0.9rem; font-weight: 500; flex: 1; padding-right: 10px; }
@@ -508,7 +606,18 @@
             font-family: 'Poppins', sans-serif;
         }
         
-        .order-code-lg { font-size: 1.1rem; font-weight: 800; color: var(--text-main); display: block; margin-bottom: 2px; }
+        .order-code-lg {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: inline-block;
+            margin-bottom: 2px;
+            background: var(--input-bg);
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
         .order-date-sm { font-size: 0.85rem; color: var(--text-muted); }
         .stepper-wrapper { padding: 20px 10px; background: var(--bg-card); }
         .stepper { display: flex; justify-content: space-between; position: relative; }
@@ -559,7 +668,7 @@
             position: relative; 
             margin-left: 10px; 
         }
-        .chat-btn-circle i { font-size: 1.3rem !important; }
+        .chat-btn-circle i { font-size: 1.3rem !important; transition: 0.3s; }
         .chat-btn-circle:active { transform: scale(0.95); box-shadow: 0 2px 8px rgba(255, 87, 34, 0.2); }
         
         /* Floating Animation */
@@ -571,6 +680,9 @@
         .chat-btn-circle.has-new-msg {
             animation: floating-chat 1.5s infinite ease-in-out;
             background: #FFF3E0;
+        }
+        .chat-btn-circle.has-new-msg i {
+            font-size: 1.6rem !important;
         }
 
         /* Red Dot */
@@ -661,6 +773,39 @@
         .nav-item.cart-active i { color: #FF5722 !important; animation: none !important; }
         .nav-item.cart-active { color: #FF5722 !important; }
         
+        /* Nav Popup */
+        .nav-msg-popup {
+            position: absolute;
+            top: -45px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.8);
+            background: var(--primary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 10px rgba(255,87,34,0.3);
+            z-index: 10;
+        }
+        .nav-msg-popup.show {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+            top: -50px;
+        }
+        .nav-msg-popup::after {
+            content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); border-width: 4px 4px 0; border-style: solid; border-color: var(--primary) transparent transparent transparent;
+        }
+        .nav-icon-box.nav-msg-anim i {
+            animation: nav-icon-pulse 1s infinite;
+            color: var(--primary) !important;
+        }
+        @keyframes nav-icon-pulse { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+
         .loader-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 4000; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 15px; }
         .spinner { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -867,107 +1012,22 @@
         }
         .header-gift-trigger {
             position: relative;
-            width: 46px;
-            height: 46px;
-            border: none;
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--primary);
             border-radius: 16px;
-            background: linear-gradient(135deg, #fff, #fff7ed);
-            box-shadow: 0 10px 24px rgba(255,87,34,0.18);
+            background: var(--input-bg);
+            box-shadow: 0 5px 15px rgba(255,87,34,0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: visible;
+            overflow: hidden;
             cursor: pointer;
             flex-shrink: 0;
+            transition: transform 0.2s;
         }
-        .header-gift-box {
-            position: relative;
-            width: 24px;
-            height: 24px;
-            transform-origin: center bottom;
-            animation: premiumGiftShake 2.4s ease-in-out infinite;
-        }
-        .header-gift-body {
-            position: absolute;
-            inset: auto 0 0 0;
-            height: 16px;
-            background: linear-gradient(135deg, #ff6a00, #ff9a3d);
-            border-radius: 5px;
-            box-shadow: inset 0 -2px 0 rgba(0,0,0,0.08);
-        }
-        .header-gift-lid {
-            position: absolute;
-            top: 2px;
-            left: -1px;
-            width: 26px;
-            height: 7px;
-            border-radius: 5px;
-            background: linear-gradient(135deg, #ff8f1f, #ffc46e);
-            z-index: 2;
-        }
-        .header-gift-ribbon-v {
-            position: absolute;
-            top: 0;
-            left: 10px;
-            width: 4px;
-            height: 24px;
-            border-radius: 999px;
-            background: #fff;
-            z-index: 3;
-        }
-        .header-gift-ribbon-h {
-            position: absolute;
-            top: 9px;
-            left: 0;
-            width: 24px;
-            height: 4px;
-            border-radius: 999px;
-            background: #fff;
-            z-index: 3;
-        }
-        .header-gift-burst {
-            position: absolute;
-            font-size: 12px;
-            opacity: 0;
-            pointer-events: none;
-            filter: drop-shadow(0 6px 10px rgba(255,87,34,0.14));
-        }
-        .header-gift-burst.b1 { animation: premiumGiftBurst1 2.4s ease-in-out infinite; }
-        .header-gift-burst.b2 { animation: premiumGiftBurst2 2.4s ease-in-out infinite; }
-        .header-gift-burst.b3 { animation: premiumGiftBurst3 2.4s ease-in-out infinite; }
-        .header-gift-burst.b4 { animation: premiumGiftBurst4 2.4s ease-in-out infinite; }
-
-        @keyframes premiumGiftShake {
-            0% { transform: translateY(0) rotate(0) scale(1); opacity: 1; }
-            10% { transform: rotate(-9deg); }
-            20% { transform: rotate(9deg); }
-            30% { transform: rotate(-7deg); }
-            40% { transform: rotate(7deg); }
-            48% { transform: translateY(-4px) rotate(4deg) scale(1.05); }
-            56% { transform: translateY(-9px) rotate(8deg) scale(0.82); opacity: 0; }
-            57% { transform: scale(0); opacity: 0; }
-            66% { transform: scale(1); opacity: 1; }
-            100% { transform: translateY(0) rotate(0) scale(1); opacity: 1; }
-        }
-        @keyframes premiumGiftBurst1 {
-            0%,42% { opacity: 0; transform: translate(0,0) scale(.2); }
-            52% { opacity: 1; transform: translate(-14px,-11px) scale(1); }
-            64%,100% { opacity: 0; transform: translate(-18px,-18px) scale(1.4); }
-        }
-        @keyframes premiumGiftBurst2 {
-            0%,42% { opacity: 0; transform: translate(0,0) scale(.2); }
-            52% { opacity: 1; transform: translate(0,-18px) scale(1); }
-            64%,100% { opacity: 0; transform: translate(0,-24px) scale(1.4); }
-        }
-        @keyframes premiumGiftBurst3 {
-            0%,42% { opacity: 0; transform: translate(0,0) scale(.2); }
-            52% { opacity: 1; transform: translate(14px,-11px) scale(1); }
-            64%,100% { opacity: 0; transform: translate(18px,-18px) scale(1.4); }
-        }
-        @keyframes premiumGiftBurst4 {
-            0%,42% { opacity: 0; transform: translate(0,0) scale(.2); }
-            52% { opacity: 1; transform: translate(0,12px) scale(1); }
-            64%,100% { opacity: 0; transform: translate(0,18px) scale(1.1); }
+        .header-gift-trigger:active {
+            transform: scale(0.95);
         }
 
         .lightning-bolt {
@@ -1083,88 +1143,38 @@
         }
         .reward-box-btn {
             position: relative;
-            width: 92px;
-            height: 92px;
+            width: 100%;
+            height: 100%;
             border: none;
             background: transparent;
-            /* Clicks handled by main button now */
             cursor: default; 
-            transform-origin: center bottom;
-            animation: rewardBoxFloat 2.3s ease-in-out infinite;
-        }
-        @keyframes rewardBoxFloat {
-            0%,100% { transform: translateY(0) rotate(0); }
-            25% { transform: translateY(-3px) rotate(-3deg); }
-            50% { transform: translateY(0) rotate(3deg); }
-            75% { transform: translateY(-2px) rotate(-2deg); }
-        }
-        .reward-box-shape {
-            position: absolute;
-            left: 14px;
-            right: 14px;
-            bottom: 12px;
-            height: 48px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #ff6a00, #ff9b3c);
-            box-shadow: inset 0 -4px 0 rgba(0,0,0,0.06);
-        }
-        .reward-box-lid {
-            position: absolute;
-            left: 10px;
-            right: 10px;
-            top: 18px;
-            height: 20px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #ff8f1f, #ffca7a);
-        }
-        .reward-box-ribbon-v, .reward-box-ribbon-h {
-            position: absolute;
-            background: white;
-            border-radius: 999px;
-            z-index: 2;
-        }
-        .reward-box-ribbon-v { width: 10px; top: 14px; bottom: 12px; left: 41px; }
-        .reward-box-ribbon-h { height: 10px; left: 14px; right: 14px; top: 42px; }
-        .reward-box-burst {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            opacity: 0;
-        }
-        .reward-box-btn.revealing {
-            animation: rewardBoxExplode .85s cubic-bezier(.175,.885,.32,1.275) forwards;
-        }
-        .reward-box-btn.revealing .reward-box-burst {
-            opacity: 1;
-        }
-        @keyframes rewardBoxExplode {
-            0% { transform: scale(1) rotate(0deg); }
-            35% { transform: scale(1.15) rotate(-6deg); }
-            65% { transform: scale(.92) rotate(8deg); }
-            100% { transform: scale(0) translateY(-18px); opacity: 0; }
-        }
-        .reward-coin-pop {
-            position: absolute;
-            inset: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            pointer-events: none;
-            opacity: 0;
-            transform: scale(.3);
-            font-size: 1.25rem;
+        }
+        
+        #reward-coin-pop {
+            position: absolute;
+            font-size: 2rem;
             font-weight: 900;
-            color: #c96b00;
+            color: #FFD700;
+            text-shadow: 0 4px 15px rgba(255, 140, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.6);
+            z-index: 20;
+            transform: scale(0);
+            opacity: 0;
+            pointer-events: none;
         }
-        .reward-coin-pop.show {
-            animation: rewardCoinPop 1.1s ease forwards;
+        #reward-coin-pop.show {
+            animation: premiumCoinPop 3s forwards;
         }
-        @keyframes rewardCoinPop {
-            0% { opacity: 0; transform: scale(.3) translateY(12px); }
-            30% { opacity: 1; transform: scale(1.12) translateY(-8px); }
-            70% { opacity: 1; transform: scale(1) translateY(-16px); }
-            100% { opacity: 0; transform: scale(1.06) translateY(-28px); }
+        @keyframes premiumCoinPop {
+            0% { opacity: 0; transform: scale(.3) translateY(20px); }
+            15% { opacity: 1; transform: scale(1.2) translateY(-10px); text-shadow: 0 0 20px rgba(255,215,0,0.8); }
+            25% { transform: scale(1) translateY(0); text-shadow: 0 0 40px rgba(255,215,0,0.6); }
+            85% { opacity: 1; transform: scale(1) translateY(0); }
+            100% { opacity: 0; transform: scale(1.1) translateY(-30px); }
         }
+
         .reward-cta-btn {
             width: 100%;
             border: none;
@@ -1268,6 +1278,39 @@
             <button id="cm-btn" class="cm-btn" onclick="closeCustomModal()">OK</button>
         </div>
     </div>
+
+    <!-- FORGOT PASSWORD PREMIUM MODAL -->
+    <div id="forgot-pass-modal" class="custom-modal-overlay">
+        <div class="custom-modal-card">
+            <div class="cm-icon"><i class="fas fa-envelope"></i></div>
+            <div class="cm-title">Reset Password</div>
+            <div class="cm-desc">Enter your email address to receive a password reset link.</div>
+            <input type="email" id="fp-email" class="form-control" placeholder="Email Address">
+            <button class="cm-btn" onclick="submitForgotPassword()">Send Reset Link</button>
+            <button class="btn-cancel-no" style="margin-top:10px;" onclick="document.getElementById('forgot-pass-modal').classList.remove('active')">Cancel</button>
+        </div>
+    </div>
+
+    <!-- LEAFLET MAP MODAL (REPLACING THE ALERT) -->
+    <div id="map-selector-modal" class="custom-modal-overlay" style="z-index: 9500;">
+        <div class="custom-modal-card" style="width: 95%; max-width: 400px; padding: 15px;">
+            <div class="cm-title" style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Select Location</span>
+                <i class="fas fa-times" style="cursor: pointer; color:var(--text-muted);" onclick="closeMapSelector()"></i>
+            </div>
+            <div style="position: relative; width: 100%; height: 350px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);">
+                <div id="interactive-map" style="width: 100%; height: 100%;"></div>
+                <!-- Center Pin Overlay -->
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%); z-index: 1000; pointer-events: none;">
+                    <i class="fas fa-map-marker-alt" style="font-size: 40px; color: var(--primary); filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));"></i>
+                </div>
+            </div>
+            <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted);">
+                Drag the map to point your exact location at the center pin.
+            </div>
+            <button class="btn btn-primary" style="margin-top: 15px;" onclick="confirmMapSelection()">Confirm Location</button>
+        </div>
+    </div>
     
     <!-- CHANGE PASSWORD MODAL -->
     <div id="change-pass-modal" class="custom-modal-overlay">
@@ -1306,7 +1349,7 @@
             <div class="sav-pop-icon"><i class="fas fa-hand-holding-heart"></i></div>
             <h3 class="popup-title">আমাদের লক্ষ্য</h3>
             <p class="sav-pop-text">
-                আমাদের উদ্দেশ্য অন্য কোম্পানির মতো লাভ করা না, বরং কম টাকায় সেইম হোটেল বা রেস্টুরেন্টের খাবার পৌঁছে দেওয়া। এর জন্য আমরা প্রতিশ্রুতিবদ্ধ।
+                আমাদের উদ্দেশ্য অন্য কোম্পানির মতো লাভ করা না, বরং কম টাকায় সেইম হোটেল বা রেস্টুরেন্টের খাবার পৌঁছে দেওয়া। এর জন্য ওয়েবসাইটে আমরা প্রতিশ্রুতিবদ্ধ।
             </p>
             
             <div class="sav-pop-stat-box">
@@ -1334,22 +1377,28 @@
         <p style="opacity:0.8">Redirecting to orders...</p>
     </div>
 
+    <!-- PREMIUM SPLASH SCREEN UPGRADE -->
     <div id="splash-screen">
         <div class="splash-logo-container">
-            <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-03-06.21.30.png?alt=media&token=64b1afb2-8d80-4b57-a1e8-d582758a2d67" class="splash-logo-img" alt="Logo" onerror="this.onerror=null; this.src='https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-03-06.21.30.png?alt=media&token=64b1afb2-8d80-4b57-a1e8-d582758a2d67';">
+            <dotlottie-wc src="https://lottie.host/1fd9da14-ff7d-4f05-989c-a28063bbbd83/hnHNKyEKQb.lottie" style="width: 200px; height: 200px" autoplay loop></dotlottie-wc>
         </div>
         <div class="splash-title">Money Food</div>
-        <div class="splash-tagline">Premium Taste, Premium Speed</div>
+        <div class="splash-tagline">Premium food chip cost</div>
     </div>
 
     <div id="page-login" class="auth-container hidden">
         <div class="auth-logo-box">
-            <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c" onerror="this.onerror=null; this.src='https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c';">
+            <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c" class="auth-logo-dyn" onerror="this.onerror=null; this.src='https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c';">
             <h2 class="auth-title">Welcome Back</h2>
             <p class="auth-subtitle">Login to satisfy your hunger</p>
         </div>
         <input type="email" id="login-email" class="form-control" placeholder="Email Address">
-        <input type="password" id="login-password" class="form-control" placeholder="Password">
+        
+        <div class="password-wrapper">
+            <input type="password" id="login-password" class="form-control" placeholder="Password">
+            <i class="fas fa-eye-slash toggle-password" onclick="togglePasswordVisibility('login-password', this)"></i>
+        </div>
+
         <button class="btn btn-primary" onclick="handleLogin()">Login</button>
         
         <button class="btn btn-google" onclick="handleGoogleLogin()">
@@ -1367,13 +1416,18 @@
 
     <div id="page-register" class="auth-container hidden">
         <div class="auth-logo-box">
-            <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c" onerror="this.onerror=null; this.src='https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c';">
+            <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c" class="auth-logo-dyn" onerror="this.onerror=null; this.src='https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c';">
             <h2 class="auth-title">Create Account</h2>
             <p class="auth-subtitle">Join us for premium food delivery</p>
         </div>
         <input type="text" id="reg-name" class="form-control" placeholder="Full Name">
         <input type="email" id="reg-email" class="form-control" placeholder="Email Address">
-        <input type="password" id="reg-password" class="form-control" placeholder="Password">
+        
+        <div class="password-wrapper">
+            <input type="password" id="reg-password" class="form-control" placeholder="Password">
+            <i class="fas fa-eye-slash toggle-password" onclick="togglePasswordVisibility('reg-password', this)"></i>
+        </div>
+
         <button class="btn btn-primary" onclick="handleSignup()">Sign Up</button>
         
         <button class="btn btn-google" onclick="handleGoogleLogin()">
@@ -1476,22 +1530,18 @@
 
     <div id="app-layout" class="hidden">
         <header id="main-header">
-            <div class="app-logo">
-                <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c" alt="Logo" onerror="this.onerror=null; this.src='https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c';">
-                Money Food
+            <div class="app-logo" style="gap:10px;">
+                <dotlottie-wc id="header-logo-lottie" src="https://lottie.host/1fd9da14-ff7d-4f05-989c-a28063bbbd83/hnHNKyEKQb.lottie" style="width: 42px; height: 42px;" autoplay loop></dotlottie-wc>
+                <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center;">
+                    <span id="header-user-name" style="font-size: 1.05rem; font-weight: 800; color: var(--text-main); line-height: 1.2;">Guest</span>
+                    <span id="header-user-loc" style="font-size: 0.75rem; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 4px; line-height: 1.2; margin-top:2px;">
+                        <i class="fas fa-map-marker-alt" style="font-size:0.7rem;"></i> <span id="header-user-loc-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; color:var(--text-muted)">Set Location</span>
+                    </span>
+                </div>
             </div>
             <div class="header-right-tools">
                 <button class="header-gift-trigger" onclick="showPage('rewards')" aria-label="Open rewards">
-                    <span class="header-gift-box">
-                        <span class="header-gift-lid"></span>
-                        <span class="header-gift-body"></span>
-                        <span class="header-gift-ribbon-v"></span>
-                        <span class="header-gift-ribbon-h"></span>
-                    </span>
-                    <span class="header-gift-burst b1">✨</span>
-                    <span class="header-gift-burst b2">🎉</span>
-                    <span class="header-gift-burst b3">⭐</span>
-                    <span class="header-gift-burst b4">💥</span>
+                    <dotlottie-wc src="https://lottie.host/ddeea413-9acb-401c-a7af-89f4cb2abcae/NZA8MOIgvD.lottie" style="width: 35px; height: 35px; transform: scale(1.4);" autoplay loop></dotlottie-wc>
                 </button>
             </div>
         </header>
@@ -1499,16 +1549,10 @@
         <main>
             <div id="page-home" class="page-section">
                 <div class="container">
-                    <div class="loyalty-card">
-                        <div class="loyalty-header">
-                            <div>
-                                <div class="loyalty-title">Premium Rewards</div>
-                                <div class="loyalty-desc">Order 6 times, get the 7th delivery <b>FREE!</b></div>
-                            </div>
-                        </div>
-                        <i class="fas fa-gift loyalty-icon"></i>
-                        <div class="track-container" id="loyalty-track-container"></div>
-                        <div style="font-size:0.75rem; color:rgba(255,255,255,0.7); margin-top:15px; text-align:center;">Complete the cycle to unlock free delivery.</div>
+                    
+                    <div class="home-slider-container" id="home-slider" style="display:none;">
+                        <div class="slider-wrapper" id="slider-wrapper"></div>
+                        <div class="slider-dots" id="slider-dots"></div>
                     </div>
                 
                     <div class="home-category-nav" id="home-category-nav"></div>
@@ -1562,17 +1606,23 @@
                             <div class="reward-tag" id="daily-reward-status-chip">Ready</div>
                         </div>
 
-                        <div class="reward-daily-box-wrap">
-                            <div class="reward-gift-spot">
+                        <div class="reward-daily-box-wrap" id="reward-daily-box-wrap">
+                            <div class="reward-gift-spot" id="reward-gift-spot">
                                 <button class="reward-box-btn" id="daily-reward-box">
-                                    <span class="reward-box-lid"></span>
-                                    <span class="reward-box-shape"></span>
-                                    <span class="reward-box-ribbon-v"></span>
-                                    <span class="reward-box-ribbon-h"></span>
-                                    <span class="reward-box-burst">✨ 🎉 ⭐</span>
+                                    <dotlottie-wc src="https://lottie.host/343a1a70-4ab1-41fc-9f23-e96f6ec2330f/UaA39EWkqp.lottie" style="width: 130px; height: 130px;" autoplay loop></dotlottie-wc>
                                 </button>
                             </div>
-                            <div class="reward-coin-pop" id="reward-coin-pop">+1 MF COIN</div>
+                            
+                            <div id="reward-loading" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.5); z-index:10; flex-direction:column; justify-content:center; align-items:center; border-radius: 24px;">
+                                <div class="spinner"></div>
+                                <div style="color:white; font-weight:bold; margin-top:10px;">Unlocking...</div>
+                            </div>
+
+                            <div id="reward-prize-lottie-container" style="display:none; position:absolute; inset:0; z-index:5; justify-content:center; align-items:center;">
+                                <dotlottie-wc src="https://lottie.host/55a5083b-e110-4b25-896c-1a640f156a17/atrpDr8Zdi.lottie" style="width: 300px; height: 300px" autoplay loop></dotlottie-wc>
+                            </div>
+
+                            <div class="reward-coin-pop" id="reward-coin-pop"></div>
                         </div>
 
                         <button class="reward-cta-btn" id="daily-reward-btn" onclick="triggerDailyRewardBox()">Claim Daily Bonus</button>
@@ -1589,9 +1639,11 @@
                          <span class="sticky-main-title"></span>
                          <span class="sticky-sub-title">Money Food</span>
                     </div>
-                    <div class="menu-hero-btn menu-cart-icon" onclick="openCartReviewForCurrentRestaurant()">
-                        <i class="fas fa-shopping-bag"></i>
-                        <div class="menu-cart-badge" id="menu-cart-badge">0</div>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <div class="menu-hero-btn menu-cart-icon" onclick="openCartReviewForCurrentRestaurant()">
+                            <i class="fas fa-shopping-bag"></i>
+                            <div class="menu-cart-badge" id="menu-cart-badge">0</div>
+                        </div>
                     </div>
                 </div>
                 <div class="container">
@@ -1612,7 +1664,11 @@
             </div>
             
             <div id="page-global-cart" class="page-section hidden">
-                <div class="container" id="global-cart-items">
+                <div class="custom-page-header">
+                    <div class="header-back-btn" onclick="showPage('home')"><i class="fas fa-arrow-left"></i></div>
+                    <div class="header-title">My Cart</div>
+                </div>
+                <div class="container" id="global-cart-items" style="padding-top: 20px;">
                 </div>
             </div>
             
@@ -1666,7 +1722,7 @@
                         <div id="loc-map-preview" class="hidden"></div>
                         <div id="loc-address-text" class="map-address-display hidden"></div>
 
-                        <div style="margin-top:10px;">
+                        <div style="margin:10px 0;">
                             <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:5px;">লাইভ লোকেশন শেয়ারে সমস্যা হলে গুগল ম্যাপ থেকে আপনার লাইভ লোকেশন লিংক দিতে পারেন রাইডারের সুবিধার্থে</label>
                             <input type="text" class="form-control" id="location-link-input" placeholder="Google Maps Link here..." style="font-size:0.9rem;">
                         </div>
@@ -1729,8 +1785,6 @@
                     </div>
 
 
-                    </div>
-
                     <div class="checkout-box checkout-coin-box" id="checkout-coin-box">
                         <div class="section-title"><i class="fas fa-gift"></i> Coin Discount</div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
@@ -1750,6 +1804,8 @@
                             </div>
                         </div>
                         <div class="reward-countdown" id="checkout-discount-note" style="margin-top:12px;">১০০ টাকার বেশি অর্ডার করলেই পেয়ে যান MF Coin !🎁.</div>
+                    </div>
+
                     <div class="checkout-box" style="border:none; box-shadow:none; background:transparent; padding:0;">
                         <div style="background:var(--bg-card); padding:20px; border-radius:16px; box-shadow:var(--shadow);">
                             <div class="section-title"><i class="fas fa-file-invoice-dollar"></i> Bill Details</div>
@@ -1762,19 +1818,19 @@
                         </div>
                     </div>
 
+                    <!-- SMART SAVINGS BANNER -->
                     <div class="savings-card hidden" id="price-compare-box">
-                        <img id="comp-banner-img" src="" class="savings-banner">
+                        <img id="comp-banner-img" src="" class="savings-banner" onerror="this.onerror=null; this.style.display='none';">
                         <div class="savings-content">
                             <div class="savings-title">Smart Savings</div>
                             <div class="compare-grid">
                                 <div class="compare-item">
-                                    <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c" class="compare-logo" style="border-color:#00C853">
+                                    <img src="https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-04-11.55.29.png?alt=media&token=12ebe32e-7475-4005-b153-ee5664b65f0c" class="compare-logo" id="mf-checkout-logo" style="border-color:#00C853">
                                     <div class="compare-name">Money Food</div>
                                     <div class="compare-price price-mf" id="cmp-mf-price">৳ 0</div>
                                 </div>
-                                <div class="compare-grid::after"></div>
                                 <div class="compare-item">
-                                    <img id="comp-logo-img" src="" class="compare-logo" style="border-color:#D32F2F">
+                                    <img id="comp-logo-img" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0c0I9E766rP8u0A2l3sY45h90K73003rY4g&s" class="compare-logo" style="border-color:#D32F2F">
                                     <div class="compare-name">Other Company</div>
                                     <div class="compare-price price-other" id="cmp-other-price">৳ 0</div>
                                 </div>
@@ -1791,8 +1847,25 @@
                 </div>
             </div>
 
-            <div id="page-orders" class="page-section hidden"><div class="container"><div class="page-header"><h3>Active Orders</h3></div><div id="orders-list"></div></div></div>
-            <div id="page-history" class="page-section hidden"><div class="container"><div class="page-header"><h3>Order History</h3><button class="btn-sm btn-outline" onclick="showPage('profile')">Back</button></div><div id="history-list"></div></div></div>
+            <div id="page-orders" class="page-section hidden">
+                <div class="custom-page-header">
+                    <div class="header-back-btn" onclick="showPage('home')"><i class="fas fa-arrow-left"></i></div>
+                    <div class="header-title">Active Orders</div>
+                </div>
+                <div class="container" style="padding-top: 15px;">
+                    <div id="orders-list"></div>
+                </div>
+            </div>
+            
+            <div id="page-history" class="page-section hidden">
+                <div class="custom-page-header">
+                    <div class="header-back-btn" onclick="showPage('profile')"><i class="fas fa-arrow-left"></i></div>
+                    <div class="header-title">Order History</div>
+                </div>
+                <div class="container" style="padding-top: 15px;">
+                    <div id="history-list"></div>
+                </div>
+            </div>
             
             <div id="page-profile" class="page-section hidden">
                 <div class="container">
@@ -1844,6 +1917,10 @@
                     </div>
                     <div id="add-address-btn-wrapper" class="hidden" style="margin-bottom:20px;">
                         <button class="btn btn-outline" onclick="showPage('address')"><i class="fas fa-plus"></i> Add Delivery Address</button>
+                    </div>
+
+                    <div class="profile-menu-item" onclick="showPage('rewards')">
+                        <i class="fas fa-coins"></i> Rewards
                     </div>
 
                     <div class="profile-menu-item" onclick="showPage('offline')">
@@ -1903,8 +1980,9 @@
                 <div class="container">
                     <div class="page-header"><h3>Offline Order</h3><button class="btn-sm btn-outline" onclick="showPage('profile')">Back</button></div>
                     
-                    <div class="offline-desc-box">
-                        <i class="fas fa-info-circle"></i> অ্যাপ থেকে অনলাইন অর্ডার করুন অথবা কল / হোয়াটসঅ্যাপ-এর মাধ্যমে অফলাইন অর্ডার করুন।
+                    <div class="offline-desc-box" style="font-size: 0.95rem; text-align: justify;">
+                        <i class="fas fa-headset" style="font-size: 1.2rem; color: #e65100; margin-bottom: 8px; display: block; text-align: center;"></i>
+                        আপনার যদি ইন্টারনেট না থাকে, অ্যাপ ব্যবহার করতে কোনো অসুবিধা হয়, বা অন্য যেকোনো সমস্যা থাকে—চিন্তার কিছু নেই! আপনি সরাসরি কল বা হোয়াটসঅ্যাপের মাধ্যমে অফলাইনে অর্ডার করতে পারেন। আমাদের কাস্টমার সাপোর্ট সবসময় আপনার পাশে আছে। আমরাই দিচ্ছি সবচেয়ে সেরা অফলাইন ও অনলাইন অর্ডারের সুবিধা!
                     </div>
 
                     <div class="offline-order-container">
@@ -1996,6 +2074,17 @@
                             <div style="height:1px; background:#ccc; flex:1"></div>
                         </div>
 
+                        <div class="premium-input-group" style="margin-bottom: 20px;">
+                            <label style="font-weight:700; color:var(--text-main); margin-bottom:8px; display:block; font-size:0.95rem;">Contact Number</label>
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <div style="position: absolute; left: 15px; color: var(--primary); font-size: 1.1rem;"><i class="fas fa-phone-alt"></i></div>
+                                <input type="tel" id="addr-contact-number" class="form-control" placeholder="017..." style="padding-left: 45px; border-radius: 16px; border: 2px solid var(--border-color); box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); height: 55px; font-weight: 600; letter-spacing: 1px; margin-bottom: 0;">
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; margin-left: 5px;"><i class="fas fa-info-circle"></i> রাইডার এই নাম্বারে কল করবে</div>
+                        </div>
+
+                        <button class="btn btn-primary" style="margin-bottom: 15px;" onclick="openMapSelector()"><i class="fas fa-map-marked-alt"></i> Open Map & Set Location</button>
+
                         <label style="font-weight:600; color:var(--text-main); margin-bottom:5px; display:block;">Select Area</label>
                         <input type="text" id="addr-area" class="form-control" placeholder="Enter your area (e.g., Mirpur 12, DOHS)" oninput="toggleAddressFields()">
                         
@@ -2007,13 +2096,6 @@
                         <div id="other-area-field" class="hidden">
                             <textarea id="addr-details" class="form-control" rows="2" placeholder="House no, Floor, Landmark..."></textarea>
                         </div>
-                        
-                        <label style="font-weight:600; color:var(--text-main); margin-top:10px; display:block;">Contact Number</label>
-                        <div style="display:flex; gap:15px; margin-bottom:10px; color:var(--text-main); margin-top:5px;">
-                            <label><input type="radio" name="contactType" value="Running" checked> Running</label>
-                            <label><input type="radio" name="contactType" value="WhatsApp"> WhatsApp</label>
-                        </div>
-                        <input type="tel" id="addr-contact-number" class="form-control" placeholder="017...">
                     </div>
                                         
                     <button class="btn btn-primary" onclick="saveAddress()" style="margin-bottom:30px;">Save Address & Continue</button>
@@ -2022,8 +2104,8 @@
         </main>
 
         <nav class="bottom-nav">
-            <a class="nav-item active" onclick="showPage('home')" id="nav-home"><i class="fas fa-home"></i>Home</a>
-            <a class="nav-item" onclick="showPage('search')" id="nav-search"><i class="fas fa-search"></i>Search</a>
+            <a class="nav-item active" onclick="showPage('home')" id="nav-home"><i class="fas fa-home"></i><span class="nav-label">Home</span></a>
+            <a class="nav-item" onclick="showPage('search')" id="nav-search"><i class="fas fa-search"></i><span class="nav-label">Search</span></a>
             <a class="nav-item" onclick="showPage('global-cart')" id="nav-btn-cart">
                 <div class="nav-icon-box">
                     <i class="fas fa-shopping-cart"></i>
@@ -2032,16 +2114,19 @@
                 <span class="nav-label">Cart</span>
             </a>
             <a class="nav-item" onclick="showPage('orders')" id="nav-orders">
-                <i class="fas fa-shopping-bag"></i>
-                <div class="nav-orders-dot" id="nav-orders-dot"></div>
-                Orders
+                <div class="nav-icon-box" id="nav-orders-icon-box" style="position:relative;">
+                    <i class="fas fa-shopping-bag" id="nav-orders-icon" style="transition: 0.3s;"></i>
+                    <div class="nav-orders-dot" id="nav-orders-dot"></div>
+                    <div id="nav-msg-popup" class="nav-msg-popup">New Message</div>
+                </div>
+                <span class="nav-label">Orders</span>
             </a>
             <a class="nav-item" onclick="showPage('profile')" id="nav-profile">
                 <div class="nav-icon-box">
                     <i class="fas fa-user"></i>
                     <div class="nav-orders-dot" id="nav-profile-dot" style="top:-2px; right:0;"></div>
                 </div>
-                Profile
+                <span class="nav-label">Profile</span>
             </a>
         </nav>
     </div>
@@ -2064,9 +2149,12 @@
 
         let currentUser, currentUserProfile={}, cart=[], products=[], restaurants = [], rootCategories=[], appSettings = {
             paymentMethods: { cod: true }, compareBannerUrl: "", competitorLogo: "",
-            serviceStartTime: "07:00", serviceEndTime: "24:00"
+            serviceStartTime: "07:00", serviceEndTime: "24:00",
+            weightConfig: { threshold: 5000, rate1: 2, rate2: 4 }
         }, riderTip=0, selectedPayment='cod', locationData={enabled:false}, currentOrderIdForRating = null;
         
+        window.totalDeliveredOrders = 0;
+
         let deliveryPriority = 'normal'; 
         let selectedRewardDiscount = 0;
         const PLATFORM_FEE = 5;
@@ -2086,9 +2174,17 @@
         
         let unreadChatQueue = []; 
         let dismissedMessages = new Set(); 
+        let notifiedMessages = JSON.parse(localStorage.getItem('notifiedMessages')) || [];
+        const chatListeners = {};
         
         let lovedRestaurants = [];
         let currentHomeCategory = 'all';
+
+        // SLIDER VARIABLES
+        let homeBanners = [];
+        let currentSlide = 0;
+        let autoSlideInterval;
+        let pauseTimeout;
 
         try { cart = JSON.parse(localStorage.getItem('cart')) || []; } catch(e) { cart = []; }
         try { lovedRestaurants = JSON.parse(localStorage.getItem('lovedRestaurants')) || []; } catch(e) { lovedRestaurants = []; }
@@ -2112,10 +2208,29 @@
         window.showToast=(m,t='success')=>{const c=document.getElementById('toast-container'),el=document.createElement('div');el.className='toast';el.style.background=t==='error'?'var(--danger)':'#333';el.innerHTML=m;c.appendChild(el);setTimeout(()=>el.remove(),3000);};
         window.showCustomAlert = (msg, title="Notice") => { const m = document.getElementById('custom-modal'); document.getElementById('cm-title').innerText = title; document.getElementById('cm-desc').innerText = msg; m.classList.add('active'); };
         window.closeCustomModal = () => { document.getElementById('custom-modal').classList.remove('active'); };
-        window.alert = window.showCustomAlert;
+        // window.alert = window.showCustomAlert;
         const toggleLoader=s=>document.getElementById('global-loader').classList.toggle('hidden',!s);
         const formatPrice=p=>`৳ ${p}`;
         
+        function alternateHeaderLogo() {
+            // Functionality removed. Now it stays static with only the Lottie and Text.
+        }
+
+        window.togglePasswordVisibility = (inputId, iconEl) => {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                iconEl.classList.remove("fa-eye-slash");
+                iconEl.classList.add("fa-eye");
+                iconEl.style.color = "var(--primary)";
+            } else {
+                input.type = "password";
+                iconEl.classList.remove("fa-eye");
+                iconEl.classList.add("fa-eye-slash");
+                iconEl.style.color = "var(--text-muted)";
+            }
+        };
+
         function setPage(id) {
             document.querySelectorAll('.page-section').forEach(e => e.classList.add('hidden'));
             const pageEl = document.getElementById(`page-${id}`);
@@ -2126,10 +2241,16 @@
             if(document.getElementById(`nav-${navId}`)) document.getElementById(`nav-${navId}`).classList.add('active');
             
             const mainHeader = document.getElementById('main-header');
-            if (id === 'home' || id === 'profile' || id === 'orders' || id === 'history' || id === 'global-cart' || id === 'rewards') {
+            if (id === 'home' || id === 'profile' || id === 'rewards') {
                 mainHeader.classList.remove('hidden');
             } else {
                 mainHeader.classList.add('hidden');
+            }
+            
+            // Hide reward icon strictly on rewards page
+            const rewardBtn = document.querySelector('.header-gift-trigger');
+            if (rewardBtn) {
+                rewardBtn.style.display = (id === 'rewards') ? 'none' : 'flex';
             }
 
             if (id !== 'restaurant-menu') {
@@ -2168,7 +2289,10 @@
         
         window.showAuthPage = (page) => { document.getElementById('page-login').classList.add('hidden'); document.getElementById('page-register').classList.add('hidden'); document.getElementById(`page-${page}`).classList.remove('hidden'); };
         window.showMiniToast = (msg, type = "default") => { const t = document.getElementById('mini-toast'); t.classList.remove('active'); clearTimeout(toastTimeout); setTimeout(() => { t.innerHTML = `<span>${msg}</span>`; if(type === 'add') t.innerHTML = `<i class="fas fa-check-circle"></i> ${msg}`; if(type === 'remove') t.innerHTML = `<i class="fas fa-trash"></i> ${msg}`; t.className = "mini-toast"; if(type === 'add') t.classList.add('add'); if(type === 'remove') t.classList.add('remove'); t.classList.add('active'); toastTimeout = setTimeout(() => { t.classList.remove('active'); }, 1000); }, 50); };
-        window.addEventListener('load', () => { setTimeout(() => { document.getElementById('splash-screen').classList.add('fade-out'); }, 2500); });
+        window.addEventListener('load', () => { 
+            setTimeout(() => { document.getElementById('splash-screen').classList.add('fade-out'); }, 4000); 
+            alternateHeaderLogo();
+        });
         let idleTimer;
         function resetIdleTimer() { clearTimeout(idleTimer); idleTimer = setTimeout(() => { document.querySelectorAll('.order-items-list.expanded').forEach(el => { el.classList.remove('expanded'); const btn = el.previousElementSibling; if(btn) btn.innerHTML = `<span><i class="fas fa-list"></i> View Items</span> <i class="fas fa-chevron-down"></i>`; }); }, 10000); }
         ['touchstart', 'click', 'scroll'].forEach(evt => document.addEventListener(evt, resetIdleTimer));
@@ -2228,10 +2352,8 @@
         onAuthStateChanged(auth, u => {
             currentUser = u;
             if (u) {
-                // User is signed in. This is for page reloads or after any login.
                 setupUserSession(u);
             } else {
-                // User is signed out.
                 document.getElementById('page-login').classList.remove('hidden');
                 document.getElementById('app-layout').classList.add('hidden');
                 document.getElementById('page-register').classList.add('hidden');
@@ -2252,7 +2374,6 @@
             syncRewardUI();
             checkMailNotifications();
             
-            // BACKGROUND SYNC - Instantly fetch new data when app is brought to foreground
             document.addEventListener("visibilitychange", function() {
                 if (document.visibilityState === 'visible') {
                     listenToOrders();
@@ -2260,7 +2381,7 @@
             });
         }
 
-        async function initApp(){fetchSettings();fetchRootCategories();fetchProducts();fetchRestaurants();}
+        async function initApp(){fetchSettings();fetchBanners();fetchRootCategories();fetchProducts();fetchRestaurants();}
         
         window.handleGoogleLogin = () => {
             toggleLoader(true);
@@ -2331,26 +2452,158 @@
                 toggleLoader(false);
             }
         };
-        window.handleLogout=()=> { toggleLoader(true); localStorage.removeItem('cart'); cart = []; document.getElementById('orders-list').innerHTML = ""; document.getElementById('history-list').innerHTML = ""; document.getElementById('global-cart-items').innerHTML = ""; signOut(auth).then(() => { window.location.reload(); }); };
+        window.handleLogout=()=> { 
+            toggleLoader(true); 
+            document.getElementById('orders-list').innerHTML = ""; 
+            document.getElementById('history-list').innerHTML = ""; 
+            document.getElementById('global-cart-items').innerHTML = ""; 
+            signOut(auth).then(() => { window.location.reload(); }); 
+        };
         
-        window.handleForgotPassword = async () => {
-            const email = prompt("Please enter your email address for password reset:");
-            if (email) {
-                toggleLoader(true);
-                try {
-                    await sendPasswordResetEmail(auth, email);
-                    showToast("Password reset email sent!");
-                } catch (error) {
-                    showCustomAlert(error.message, "Error");
-                } finally {
-                    toggleLoader(false);
-                }
+        window.handleForgotPassword = () => {
+            document.getElementById('forgot-pass-modal').classList.add('active');
+        };
+
+        window.submitForgotPassword = async () => {
+            const email = document.getElementById('fp-email').value.trim();
+            if (!email) return showCustomAlert("Please enter your email.");
+            toggleLoader(true);
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showToast("Password reset email sent!");
+                document.getElementById('forgot-pass-modal').classList.remove('active');
+            } catch (error) {
+                showCustomAlert(error.message, "Error");
+            } finally {
+                toggleLoader(false);
             }
         };
 
         function updateAllUIs() { if(restaurants.length > 0 && products.length > 0) { renderRestaurants(); } updateCartUI(); listenToOrders(); }
-        function fetchSettings(){onValue(ref(db,'settings/app_config'),s=>{if(s.exists()){appSettings={...appSettings,...s.val()}; document.getElementById('service-hours-display').innerText = `${appSettings.serviceStartTime} - ${appSettings.serviceEndTime}` || ''; }});}
         
+        function fetchSettings(){
+            onValue(ref(db,'settings/app_config'), s => {
+                if(s.exists()){
+                    appSettings={...appSettings,...s.val()}; 
+                    document.getElementById('service-hours-display').innerText = `${appSettings.serviceStartTime} - ${appSettings.serviceEndTime}` || ''; 
+                    
+                    if(appSettings.appLogo) {
+                        document.querySelectorAll('.auth-logo-dyn').forEach(img => img.src = appSettings.appLogo);
+                    }
+                }
+            });
+        }
+        
+        // --- SLIDER FUNCTIONS ---
+        function fetchBanners() {
+            onValue(ref(db, 'banners'), s => {
+                homeBanners = [];
+                if (s.exists()) {
+                    s.forEach(snap => {
+                        homeBanners.push({ id: snap.key, ...snap.val() });
+                    });
+                }
+                renderSlider();
+            });
+        }
+
+        function renderSlider() {
+            const wrapper = document.getElementById('slider-wrapper');
+            const dotsContainer = document.getElementById('slider-dots');
+            if (!wrapper || !dotsContainer) return;
+            
+            if (homeBanners.length === 0) {
+                document.getElementById('home-slider').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('home-slider').style.display = 'block';
+            
+            wrapper.innerHTML = homeBanners.map((b, i) => `
+                <div class="slider-item" onclick="handleBannerClick('${b.targetType}', '${b.targetId}')">
+                    <img src="${b.imageUrl}" onerror="this.onerror=null; this.src='fallback.png';">
+                </div>
+            `).join('');
+            
+            dotsContainer.innerHTML = homeBanners.map((_, i) => `
+                <div class="slider-dot ${i===0 ? 'active':''}"></div>
+            `).join('');
+            
+            currentSlide = 0;
+            updateSliderPosition();
+            startAutoSlide();
+            initSliderTouch();
+        }
+
+        window.handleBannerClick = (type, id) => {
+            if (type === 'restaurant' || type === 'shop') {
+                showPage('restaurant-menu', id);
+            } else if (type === 'screen') {
+                showPage(id);
+            }
+        };
+
+        function updateSliderPosition() {
+            const wrapper = document.getElementById('slider-wrapper');
+            const dots = document.querySelectorAll('.slider-dot');
+            if(wrapper) wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+            dots.forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+        }
+
+        function nextSlide() {
+            if(homeBanners.length <= 1) return;
+            currentSlide = (currentSlide + 1) % homeBanners.length;
+            updateSliderPosition();
+        }
+
+        function prevSlide() {
+            if(homeBanners.length <= 1) return;
+            currentSlide = (currentSlide - 1 + homeBanners.length) % homeBanners.length;
+            updateSliderPosition();
+        }
+
+        function startAutoSlide() {
+            clearInterval(autoSlideInterval);
+            if(homeBanners.length > 1) {
+                autoSlideInterval = setInterval(nextSlide, 3000);
+            }
+        }
+
+        function pauseAutoSlide() {
+            clearInterval(autoSlideInterval);
+            clearTimeout(pauseTimeout);
+            pauseTimeout = setTimeout(() => {
+                startAutoSlide();
+            }, 5000);
+        }
+
+        function initSliderTouch() {
+            const slider = document.getElementById('home-slider');
+            if(!slider) return;
+            let startX = 0, isDragging = false;
+            
+            const clone = slider.cloneNode(true);
+            slider.parentNode.replaceChild(clone, slider);
+            const newSlider = document.getElementById('home-slider');
+            
+            newSlider.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+                pauseAutoSlide();
+            }, {passive: true});
+            
+            newSlider.addEventListener('touchend', (e) => {
+                if(!isDragging) return;
+                const endX = e.changedTouches[0].clientX;
+                const diff = startX - endX;
+                if(diff > 50) nextSlide();
+                else if (diff < -50) prevSlide();
+                isDragging = false;
+            }, {passive: true});
+        }
+        // --- END SLIDER FUNCTIONS ---
+
+
         function fetchRootCategories(){
             onValue(ref(db, 'root_categories'), s => {
                 rootCategories = [];
@@ -2367,8 +2620,17 @@
                     });
                     cats.sort((a,b) => a.sortOrder - b.sortOrder);
                     
-                    cats.forEach(c => {
-                         nav.innerHTML += `<div class="home-cat-pill" onclick="filterHome('${c.id}', this, '${c.name}')">${c.name}</div>`;
+                    cats.forEach((c, index) => {
+                         const pill = document.createElement('div');
+                         pill.className = 'home-cat-pill';
+                         pill.innerText = c.name;
+                         pill.onclick = () => filterHome(c.id, pill, c.name);
+                         nav.appendChild(pill);
+                         if(index === 0) {
+                             pill.classList.add('active');
+                             currentHomeCategory = c.id;
+                             document.getElementById('home-section-title').innerText = c.name;
+                         }
                     });
                 }
             });
@@ -2399,6 +2661,22 @@
         }); }
         function fetchProducts(){ onValue(ref(db,'products'),s=>{ products=[];if(s.exists()){const d=s.val();for(const k in d)products.push({id:k, ...d[k]});} products.sort((a,b)=>(a.productOrder||999999)-(b.productOrder||999999)); preloadImages(products, 'image'); updateAllUIs(); }); }
         
+        function updateHeaderProfile(p, addr) {
+            document.getElementById('header-user-name').innerText = (p && p.displayName) ? p.displayName : 'Guest';
+            let locText = 'Set Location';
+            if (addr && addr.area) {
+                locText = addr.area;
+                if (addr.details) {
+                    let shortDetails = addr.details.split(',')[0];
+                    if(shortDetails.length > 15) shortDetails = shortDetails.substring(0, 15) + '...';
+                    locText += ', ' + shortDetails;
+                } else if (addr.road) {
+                    locText += ', Rd ' + addr.road;
+                }
+            }
+            document.getElementById('header-user-loc-text').innerText = locText;
+        }
+
         function fetchUserProfile(uid){ 
             onValue(ref(db,`users/${uid}`), s=>{ 
                 if(!s.exists()) {
@@ -2407,7 +2685,9 @@
                 }
                 currentUserProfile = s.val(); 
                 const p = currentUserProfile.profile || {};
-                const stats = currentUserProfile.stats || { totalSpent: 0, totalCompetitorCost: 0, deliveryCostSaved: 0 };
+                
+                updateHeaderProfile(p, currentUserProfile.address);
+                window.totalDeliveredOrders = p.deliveredOrdersCount || 0;
                 
                 document.getElementById('profile-display-name').innerText = p.displayName || 'Guest'; 
                 document.getElementById('profile-display-email').innerText = p.email; 
@@ -2418,25 +2698,19 @@
                 document.getElementById('prof-name').value = p.displayName || ''; 
                 document.getElementById('prof-phone').value = p.phone || ''; 
 
-                const totalSavedAmount = Math.max(0, (stats.totalCompetitorCost - stats.totalSpent));
-                document.getElementById('rep-competitor').innerText = formatPrice(stats.totalCompetitorCost || 0);
-                document.getElementById('rep-spent').innerText = formatPrice(stats.totalSpent || 0);
-                document.getElementById('rep-del-saved').innerText = formatPrice(stats.deliveryCostSaved || 0);
-                document.getElementById('rep-saved').innerText = formatPrice(totalSavedAmount);
-                
-                document.getElementById('pop-total-orders').innerText = (p.deliveredOrdersCount || 0) + " টি";
-                document.getElementById('pop-competitor-cost').innerText = formatPrice(stats.totalCompetitorCost || 0);
-                document.getElementById('pop-saved-amount').innerText = formatPrice(totalSavedAmount);
-
                 checkSupportReplies();
+                
+                // Safe handling of daily claim reset from admin
                 rewardState = {
                     coins: Number(currentUserProfile.rewards?.coins || 0),
                     lastDailyClaimAt: Number(currentUserProfile.rewards?.lastDailyClaimAt || 0),
                 };
                 syncRewardUI();
-                renderLoyaltyTrack(p.deliveredOrdersCount || 0);
-                renderLoyaltyTrackRewardPage(p.deliveredOrdersCount || 0);
+                renderLoyaltyTrackRewardPage(window.totalDeliveredOrders);
                 renderAddressCardUI(); 
+                
+                // Triggers restaurant re-render if distance calculation changed
+                if (restaurants.length > 0) renderRestaurants();
                 
                 toggleLoader(false);
             }); 
@@ -2506,27 +2780,43 @@
                 showMiniToast('Daily bonus locked');
                 return;
             }
-            const box = document.getElementById('daily-reward-box');
-            if (!box || box.classList.contains('revealing')) return;
-            box.classList.add('revealing');
-
-            const reward = Math.floor(Math.random() * 5) + 1;
+            
+            const boxWrap = document.getElementById('reward-daily-box-wrap');
+            const loading = document.getElementById('reward-loading');
+            const giftSpot = document.getElementById('reward-gift-spot');
+            const prizeLottie = document.getElementById('reward-prize-lottie-container');
             const pop = document.getElementById('reward-coin-pop');
-            if (pop) {
-                pop.innerText = `+${reward} MF COIN`;
-                pop.classList.remove('show');
-                void pop.offsetWidth;
-                pop.classList.add('show');
-            }
 
-            setTimeout(async () => {
-                box.classList.remove('revealing');
-                await persistRewardState({
-                    coins: Number(rewardState.coins || 0) + reward,
-                    lastDailyClaimAt: Date.now()
-                });
-                showToast(`Daily bonus claimed: +${reward} MF COIN`);
-            }, 860);
+            if (!giftSpot || loading.style.display === 'flex') return;
+            
+            loading.style.display = 'flex';
+            
+            setTimeout(() => {
+                loading.style.display = 'none';
+                giftSpot.style.display = 'none';
+                prizeLottie.style.display = 'flex';
+                
+                const reward = Math.floor(Math.random() * 5) + 1;
+                if (pop) {
+                    pop.innerText = `+${reward} MF COIN`;
+                    pop.classList.remove('show');
+                    void pop.offsetWidth; 
+                    pop.classList.add('show');
+                }
+
+                setTimeout(async () => {
+                    prizeLottie.style.display = 'none';
+                    giftSpot.style.display = 'flex';
+                    pop.classList.remove('show');
+                    
+                    await persistRewardState({
+                        coins: Number(rewardState.coins || 0) + reward,
+                        lastDailyClaimAt: Date.now()
+                    });
+                    showToast(`Daily bonus claimed: +${reward} MF COIN`);
+                }, 3000); 
+
+            }, 2000); 
         };
 
         function getOrderCoinReward(orderSubtotal) {
@@ -2544,7 +2834,7 @@
             const card500 = document.getElementById('checkout-discount-500');
             const card1000 = document.getElementById('checkout-discount-1000');
             const note = document.getElementById('checkout-discount-note');
-            const deliveredCount = Number(currentUserProfile.profile?.deliveredOrdersCount || 0);
+            const deliveredCount = window.totalDeliveredOrders;
             const isFreeDelivery = (deliveredCount % 7) === 6;
             const coinBalance = Number(rewardState.coins || 0);
 
@@ -2579,7 +2869,7 @@
         }
 
         window.selectRewardDiscount = (coinNeed) => {
-            const deliveredCount = Number(currentUserProfile.profile?.deliveredOrdersCount || 0);
+            const deliveredCount = window.totalDeliveredOrders;
             const isFreeDelivery = (deliveredCount % 7) === 6;
             if (isFreeDelivery) {
                 showMiniToast('Free delivery active');
@@ -2705,12 +2995,76 @@
             }, { enableHighAccuracy: true });
         };
         
-        // Removed houseImages logic from saveAddress
+        // LEAFLET MAP LOGIC
+        let interactiveMap = null;
+        window.openMapSelector = () => {
+            document.getElementById('map-selector-modal').classList.add('active');
+            if (!interactiveMap) {
+                interactiveMap = L.map('interactive-map').setView([23.8103, 90.4125], 15); // Default to Dhaka
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(interactiveMap);
+
+                // Try to get current location to center map initially
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(pos => {
+                        interactiveMap.setView([pos.coords.latitude, pos.coords.longitude], 16);
+                    });
+                }
+            } else {
+                setTimeout(() => interactiveMap.invalidateSize(), 200);
+            }
+        };
+
+        window.closeMapSelector = () => {
+            document.getElementById('map-selector-modal').classList.remove('active');
+        };
+
+        window.confirmMapSelection = async () => {
+            const center = interactiveMap.getCenter();
+            const lat = center.lat;
+            const lng = center.lng;
+            
+            toggleLoader(true, "Getting address...");
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                const data = await res.json();
+                
+                locationData = { enabled: true, lat: lat, lng: lng };
+
+                const mapFrame = document.getElementById('addr-map-frame');
+                mapFrame.style.display = "block";
+                mapFrame.innerHTML = `<iframe width="100%" height="100%" frameborder="0" style="border:0" src="https://maps.google.com/maps?q=${lat},${lng}&z=17&output=embed"></iframe>`;
+                
+                if (data && data.display_name) {
+                    const addrText = document.getElementById('addr-detected-text');
+                    addrText.style.display = "block";
+                    addrText.innerHTML = `<b><i class="fas fa-check-circle" style="color:green"></i> Location Selected:</b><br>${data.display_name}`;
+                    document.getElementById('addr-details').value = data.display_name;
+                    
+                    const predefinedAreas = ["Mirpur 2", "Mirpur 6", "Mirpur 7", "Mirpur 11", "Mirpur 12", "DOHS"];
+                    const foundArea = predefinedAreas.find(area => data.display_name.toLowerCase().includes(area.toLowerCase()));
+                    if (foundArea) { document.getElementById('addr-area').value = foundArea; }
+                    else { document.getElementById('addr-area').value = ''; }
+                    toggleAddressFields();
+                }
+
+                await update(ref(db, `users/${currentUser.uid}/address`), { location: locationData });
+                showToast("Location captured & saved!");
+                closeMapSelector();
+
+            } catch (e) {
+                showToast("Failed to get address. Try again.", "error");
+            } finally {
+                toggleLoader(false);
+            }
+        };
+
         window.saveAddress = async () => {
             const a = {
                 area: document.getElementById('addr-area').value,
                 contactNumber: document.getElementById('addr-contact-number').value,
-                contactType: document.querySelector('input[name="contactType"]:checked').value
+                contactType: 'Running'
             };
             if (!a.area || !a.contactNumber) return showCustomAlert("Please fill all required fields");
 
@@ -2762,6 +3116,8 @@
                 
                 const isLoved = lovedRestaurants.includes(r.id);
                 
+                const deliveryFeeText = calculateDynamicDeliveryFee(r.id, true);
+
                 return `<div class="restaurant-card ${isOffline ? 'offline' : ''}" onclick="${isOffline ? '' : `showPage('restaurant-menu', '${r.id}')`}">
                     <div class="love-icon ${isLoved ? 'active' : ''}" onclick="toggleLove(event, '${r.id}')"><i class="fas fa-heart"></i></div>
                     <img src="${r.bannerImage}" onerror="this.onerror=null; this.src='${r.bannerImage}';" class="restaurant-banner">
@@ -2769,7 +3125,7 @@
                         <div class="restaurant-name">${r.name}</div>
                         <div class="restaurant-meta">
                             <div class="meta-row">
-                                <span class="delivery-pill"><i class="fas fa-motorcycle" style="color:var(--primary)"></i> Delivery 35৳+/-</span>
+                                <span class="delivery-pill"><i class="fas fa-motorcycle" style="color:var(--primary)"></i> Delivery ${deliveryFeeText}</span>
                                 ${avgSaving > 0 ? `<span class="savings-pill"><i class="fas fa-tags"></i> Save ${avgSaving}%</span>` : ''}
                             </div>
                         </div>
@@ -2788,7 +3144,7 @@
             }
             localStorage.setItem('lovedRestaurants', JSON.stringify(lovedRestaurants));
             renderRestaurants();
-        }
+        };
 
         window.filterHome = (categoryId, el, categoryName) => {
             currentHomeCategory = categoryId;
@@ -2829,7 +3185,7 @@
             const heroContent = document.querySelector('.menu-hero-content');
             const heroBg = document.getElementById('menu-hero-bg');
             const heroSection = document.getElementById('menu-hero-section');
-            const heroHeight = heroSection ? heroSection.offsetHeight : 250;
+            const heroHeight = heroSection ? heroSection.offsetHeight : 190;
             const revealPoint = Math.max(90, heroHeight - 120);
             
             if (scrollY > revealPoint) {
@@ -2877,6 +3233,17 @@
         };
         window.closeProductModal = () => { const m = document.getElementById('product-details-modal'); m.classList.remove('active'); document.body.classList.remove('no-scroll'); renderProducts(products.filter(p => p.restaurantId === activeRestaurantId || p.restaurantId === 'global')); };
         
+        // AUTO WEIGHT DETECTION FROM TITLE
+        function extractWeightFromTitle(title) {
+            const match = title.toLowerCase().match(/(\d+(?:\.\d+)?)\s*(kg|g|gm|l|ml|liter|litre)/);
+            if (!match) return 0;
+            const val = parseFloat(match[1]);
+            const unit = match[2];
+            if (unit === 'kg' || unit === 'l' || unit === 'liter' || unit === 'litre') return val * 1000;
+            if (unit === 'g' || unit === 'gm' || unit === 'ml') return val;
+            return 0;
+        }
+
         window.adjustModalQty = (d) => {
             const pid = document.getElementById('active-modal-pid').value;
             const p = products.find(x=>x.id===pid); if(!p) return;
@@ -2886,7 +3253,11 @@
             if(d > 0) showMiniToast("Added to Cart", "add");
             if(d < 0 && currentQty > 0) showMiniToast("Removed from Cart", "remove");
             cart = cart.filter(x=>x.productId!==pid); 
-            if(newQty > 0) { cart.push({ productId:pid, name:p.name, price:p.price, competitorPrice: p.competitorPrice || 0, image:p.image, qty:newQty, restaurantId: p.restaurantId }); }
+            
+            // Priority: Admin defined weight first, then auto-detected from name
+            const itemWeight = p.weight || extractWeightFromTitle(p.name);
+            
+            if(newQty > 0) { cart.push({ productId:pid, name:p.name, price:p.price, competitorPrice: p.competitorPrice || 0, image:p.image, qty:newQty, restaurantId: p.restaurantId, weight: itemWeight }); }
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartUI(); 
             updateMenuCartBadge();
@@ -3067,8 +3438,8 @@
             
             showPage('checkout');
             
-            const isFreeDelivery = ((currentUserProfile.profile?.deliveredOrdersCount || 0) % 7) === 6;
-            const calculatedFee = calculateDynamicDeliveryFee();
+            const isFreeDelivery = (window.totalDeliveredOrders % 7) === 6;
+            const calculatedFee = calculateDynamicDeliveryFee(checkoutRestaurantId);
             
             if(isFreeDelivery) {
                 document.getElementById('fee-normal').innerHTML = `<span style="text-decoration:line-through; color:grey">${calculatedFee} ৳</span> <span style="color:#00C853; font-weight:800">FREE</span>`;
@@ -3102,19 +3473,48 @@
             return R * c; 
         }
 
-        function calculateDynamicDeliveryFee() {
-            const restaurant = restaurants.find(r => r.id === checkoutRestaurantId);
+        // UPDATED DELIVERY CHARGE LOGIC
+        function calculateDynamicDeliveryFee(restId, isPreview = false) {
+            const restaurant = restaurants.find(r => r.id === restId);
             const userCoords = currentUserProfile.address?.location;
             const restCoords = restaurant?.location;
 
-            if (userCoords && restCoords) {
+            if (userCoords && userCoords.enabled && restCoords && restCoords.lat) {
                 const distance = calculateDistance(userCoords, restCoords);
-                if (distance < 1) return 20;
-                if (distance >= 1 && distance < 2) return Math.floor(Math.random() * 3) + 35; // 35-37
-                if (distance >= 2 && distance < 3) return Math.floor(Math.random() * 5) + 37; // 37-41
-                if (distance >= 3) return 20 + Math.ceil(distance * 8); 
+                let fee = 35;
+                
+                if (distance <= 1.0) {
+                    // 0 - 1km: 35-37tk
+                    fee = Math.floor(Math.random() * 3) + 35; 
+                } else if (distance > 1.0 && distance <= 2.0) {
+                    // 1.1 - 2km: 38-40tk
+                    fee = Math.floor(Math.random() * 3) + 38; 
+                } else if (distance > 2.0 && distance < 3.0) {
+                    // 2.1 - 2.9km: 40-42tk
+                    fee = Math.floor(Math.random() * 3) + 40; 
+                } else if (distance >= 3.0) {
+                    // 3km+: Fixed 20tk + (8tk per km)
+                    fee = 20 + Math.ceil(distance * 8);
+                }
+                return isPreview ? `${fee}৳` : fee;
             }
-            return 35; 
+            return isPreview ? "35৳+/-" : 35; 
+        }
+
+        // UPDATED WEIGHT CHARGE LOGIC (2 TK PER KG OVER 5KG)
+        function calculateWeightFee() {
+            const checkoutCart = cart.filter(item => item.restaurantId === checkoutRestaurantId);
+            const totalWeight = checkoutCart.reduce((total, item) => total + ((item.weight || 0) * item.qty), 0);
+            
+            const threshold = 5000; // 5KG limit before extra charges
+            
+            if (totalWeight <= threshold) return 0;
+            
+            const overWeight = totalWeight - threshold;
+            // 2 taka for every extra KG (or part thereof)
+            const extraCharge = Math.ceil(overWeight / 1000) * 2; 
+            
+            return extraCharge;
         }
 
         function calculateCheckoutTotal(){ 
@@ -3129,17 +3529,19 @@
                 return;
             }
             document.getElementById('checkout-items-list').innerHTML = checkoutCart.map(i => 
-                `<div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:0.9rem;">
+                `<div class="checkout-item-box">
                     <span>${i.qty}x ${i.name}</span>
                     <span>${formatPrice(i.price*i.qty)}</span>
                 </div>`
             ).join('');
 
             const subTotal = checkoutCart.reduce((a,b)=>a+b.price*b.qty,0); 
-            const deliveredCount = Number(currentUserProfile.profile?.deliveredOrdersCount || 0);
+            const deliveredCount = window.totalDeliveredOrders;
             const isFreeDelivery = (deliveredCount % 7) === 6; 
 
-            let baseDeliveryFee = calculateDynamicDeliveryFee();
+            let baseDeliveryFee = calculateDynamicDeliveryFee(checkoutRestaurantId);
+            baseDeliveryFee += calculateWeightFee();
+            
             let delivery = isFreeDelivery ? 0 : baseDeliveryFee;
             if(deliveryPriority === 'fast') delivery += 20; 
 
@@ -3171,7 +3573,9 @@
 
             if (box && currentStore && currentStore.enableCompetitorComparison) {
                 document.getElementById('comp-banner-img').src = appSettings.compareBannerUrl || ""; 
-                document.getElementById('comp-logo-img').src = appSettings.competitorLogo || ""; 
+                document.getElementById('comp-logo-img').src = appSettings.competitorLogo || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0c0I9E766rP8u0A2l3sY45h90K73003rY4g&s"; 
+                const mfLogoCheckout = document.getElementById('mf-checkout-logo');
+                if (mfLogoCheckout && appSettings.appLogo) mfLogoCheckout.src = appSettings.appLogo;
                 document.getElementById('cmp-mf-price').innerText = formatPrice(grandTotal); 
 
                 const compItemTotal = checkoutCart.reduce((a, item) => { let cPrice = (item.competitorPrice && item.competitorPrice > 0) ? item.competitorPrice : Math.ceil(item.price * 1.15); return a + (cPrice * item.qty); }, 0); 
@@ -3181,12 +3585,9 @@
                 document.getElementById('cmp-other-price').innerText = formatPrice(compTotal); 
 
                 const savings = compTotal - grandTotal; 
-                if(savings > 0) { 
-                    document.getElementById('cmp-save-amt').innerHTML = `YOU SAVE: ${formatPrice(savings)}`; 
-                    box.classList.remove('hidden'); 
-                } else { 
-                    box.classList.add('hidden'); 
-                }
+                
+                document.getElementById('cmp-save-amt').innerHTML = `YOU SAVE: ${formatPrice(savings > 0 ? savings : 0)}`; 
+                box.classList.remove('hidden'); 
             } else {
                 if(box) box.classList.add('hidden');
             }
@@ -3219,32 +3620,33 @@
         window.getLocation=()=>{ const box=document.getElementById('loc-box'), title=document.getElementById('loc-title-text'), status=document.getElementById('loc-status-text'), mapDiv=document.getElementById('loc-map-preview'), addrTxt=document.getElementById('loc-address-text'); if(!navigator.geolocation) return; status.innerText="Loading Map..."; title.innerText="Locating..."; navigator.geolocation.getCurrentPosition(async p=>{ const lat = p.coords.latitude; const lng = p.coords.longitude; locationData={enabled:true, lat:lat, lng:lng}; box.classList.add('active'); title.innerHTML=`<i class="fas fa-check-circle"></i> Live Location Attached`; status.innerText="Map loaded below"; mapDiv.classList.remove('hidden'); mapDiv.innerHTML = `<iframe class="map-preview-frame" src="https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed"></iframe>`; try { const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`); const data = await res.json(); if(data && data.display_name) { addrTxt.classList.remove('hidden'); addrTxt.innerHTML = `<b>Google Map অনুযায়ী ঠিকানা:</b><br>${data.display_name}`; } } catch(e) { console.log(e); } },e=>{ status.innerText="Failed. Try enabling GPS."; }); };
         
         function initSwipeButton() { const btn = document.getElementById('swipe-btn'); const handle = document.getElementById('swipe-handle'); const bg = document.getElementById('swipe-bg'); if(!btn || !handle) return; let isDragging = false, startX, containerWidth; const startDrag = (e) => { isDragging = true; startX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX; containerWidth = btn.offsetWidth - handle.offsetWidth; }; const moveDrag = (e) => { if(!isDragging) return; if(e.type === 'touchmove') e.preventDefault(); let currentX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX; let diff = currentX - startX; if(diff < 0) diff = 0; if(diff > containerWidth) diff = containerWidth; handle.style.left = diff + 'px'; bg.style.width = diff + 'px'; if(diff >= containerWidth - 5) { isDragging = false; handle.style.left = containerWidth + 'px'; showOrderConfirmation(); } }; const endDrag = () => { if(!isDragging) return; isDragging = false; handle.style.transition = 'left 0.3s, width 0.3s'; bg.style.transition = 'width 0.3s'; handle.style.left = '0px'; bg.style.width = '0px'; setTimeout(() => { handle.style.transition = ''; bg.style.transition = ''; }, 300); }; handle.addEventListener('mousedown', startDrag); handle.addEventListener('touchstart', startDrag); document.addEventListener('mousemove', moveDrag); document.addEventListener('touchmove', moveDrag, {passive: false}); document.addEventListener('mouseup', endDrag); document.addEventListener('touchend', endDrag); }
+        
         function resetCheckoutState() { riderTip = 0; selectedRewardDiscount = 0; document.getElementById('tip-manual').value = ""; document.getElementById('rider-note').value = ""; document.getElementById('location-link-input').value = ""; locationData={enabled:false}; document.getElementById('loc-map-preview').innerHTML = ""; document.getElementById('loc-map-preview').classList.add('hidden'); document.getElementById('loc-address-text').innerHTML = ""; document.getElementById('loc-address-text').classList.add('hidden'); document.getElementById('loc-box').classList.remove('active'); document.getElementById('loc-title-text').innerHTML = '<i class="fas fa-map-marker-alt"></i> Share Live Location'; document.getElementById('loc-status-text').innerText = "Tap to enable map"; document.getElementById('swipe-handle').style.left = '0'; document.getElementById('swipe-bg').style.width = '0'; selectedPayment = 'cod'; document.querySelectorAll('.tip-card').forEach(c => c.classList.remove('selected')); updateCheckoutRewardAvailability(); }
+        
         let confirmationTimer = null;
         window.showOrderConfirmation = () => { const checkoutCart = cart.filter(item => item.restaurantId === checkoutRestaurantId); if(!checkoutCart.length) { resetSwipe(); return showCustomAlert("Cart empty"); } if(!currentUserProfile.address?.area){ resetSwipe(); showCustomAlert("Set address first"); showPage('address'); return; } const modal = document.getElementById('confirm-order-modal'); const btn = document.getElementById('btn-confirm-final'); modal.classList.add('active'); btn.classList.add('disabled'); let count = 5; btn.innerText = `Wait (${count}s)`; if(confirmationTimer) clearInterval(confirmationTimer); confirmationTimer = setInterval(() => { count--; if(count <= 0) { clearInterval(confirmationTimer); btn.classList.remove('disabled'); btn.innerText = "Yes (Confirm)"; } else { btn.innerText = `Wait (${count}s)`; } }, 1000); };
+        
         function resetSwipe() { const handle = document.getElementById('swipe-handle'); const bg = document.getElementById('swipe-bg'); if(handle) handle.style.left = '0'; if(bg) bg.style.width = '0'; }
         
-        // --- UPDATED ORDER PLACEMENT LOGIC ---
         window.confirmAndPlaceOrder = async () => { 
             document.getElementById('confirm-order-modal').classList.remove('active'); 
             if(isOrderProcessing) return; 
             isOrderProcessing = true; 
             toggleLoader(true); 
             
-            // Re-fetch user profile to get the latest address and location data
             const userSnap = await get(ref(db, `users/${currentUser.uid}`));
             const latestUserProfile = userSnap.val();
 
-            // The location to be sent with the order.
-            // Priority 1: A new live location shared during this checkout session.
-            // Priority 2: The default location saved in the user's profile.
             const orderLocation = (locationData && locationData.enabled) ? locationData : (latestUserProfile.address?.location || null);
 
             const checkoutCart = cart.filter(item => item.restaurantId === checkoutRestaurantId); 
             const sub = checkoutCart.reduce((a,b)=>a+b.price*b.qty,0); 
-            const deliveredCount = Number(latestUserProfile.profile?.deliveredOrdersCount || 0);
+            const deliveredCount = window.totalDeliveredOrders;
             const isFreeDelivery = (deliveredCount % 7) === 6; 
-            let baseDelFee = calculateDynamicDeliveryFee(); 
+            
+            let baseDelFee = calculateDynamicDeliveryFee(checkoutRestaurantId);
+            baseDelFee += calculateWeightFee();
+
             let del = isFreeDelivery ? 0 : baseDelFee; 
             if(deliveryPriority === 'fast') del += 20; 
             const discountValue = isFreeDelivery ? 0 : getSelectedDiscountValue();
@@ -3261,11 +3663,11 @@
                 await set(orderRef, { 
                     userId:currentUser.uid, 
                     restaurantId: checkoutRestaurantId, 
-                    address: latestUserProfile.address, // Always send the latest saved address
+                    address: latestUserProfile.address, 
                     items:checkoutCart, 
                     totals:{ subTotal:sub, platformFee: PLATFORM_FEE, deliveryCharge:del, riderTip:riderTip, rewardDiscount: discountValue, cashOutFee:0, grandTotal:grand }, 
                     payment:payInfo, 
-                    location: orderLocation, // Send the prioritized location
+                    location: orderLocation, 
                     riderNote: riderNote, 
                     status:'pending', 
                     createdAt:serverTimestamp(), 
@@ -3291,56 +3693,184 @@
             } 
         };
         
-        function listenToOrders(){ if(!currentUser)return; onValue(ref(db,`orders/${currentUser.uid}`),s=>{ const al=document.getElementById('orders-list'), hl=document.getElementById('history-list'); al.innerHTML=""; hl.innerHTML=""; if(!s.exists()){al.innerHTML="<p style='text-align:center; margin-top:20px; color:var(--text-muted)'>No active orders</p>"; return;} const o=[]; s.forEach(c => { if(c.val() && c.val().status) o.push({id:c.key, ...c.val()}); }); o.sort((a,b)=>b.createdAt-a.createdAt); o.forEach(d=>{ const isHist = d.status==='delivered' || d.status==='cancelled'; const payAmount = d.payment.finalPayable || d.totals.grandTotal; if(d.status === 'delivered' && d.riderId) { remove(ref(db, `chats/${d.id}`)); } let bannerUrl = "https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-03-05.58.24.png?alt=media&token=1628bba5-6fd0-4c6c-a25c-150a3411de56"; if(d.status === 'delivered') bannerUrl = "https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FOdder%20compelet.png?alt=media&token=fff2254f-e127-4be1-b155-850a76b69d7c"; const steps = ['pending', 'accepted', 'preparing', 'ontheway', 'delivered']; const currentStepIdx = steps.indexOf(d.status.toLowerCase()); const progressWidth = currentStepIdx <= 0 ? 0 : (currentStepIdx / (steps.length - 1)) * 100; const renderStep = (label, status, icon) => { let cls = ''; const stepIndex = steps.indexOf(status); if(d.status === 'cancelled') { cls = 'cancelled'; } else if (status === 'preparing' && d.status === 'preparing') { cls = 'preparing'; } else if (stepIndex <= currentStepIdx) { cls = 'active'; } return `<div class="step ${cls}"><div class="step-circle"><i class="fas ${icon}"></i></div><div class="step-label">${label}</div></div>`; }; let footerHtml = '', bengaliMsg = ''; if(d.status === 'cancelled') { footerHtml = `<div class="cancelled-badge">⚠️ ORDER CANCELLED</div>`; } else { footerHtml = `<div class="pay-method-text"><i class="fas fa-money-bill-wave" style="color:#4CAF50"></i> Cash on Delivery</div><div class="collect-badge" style="color:#FF5722;">You Pay: ${formatPrice(payAmount)}</div>`; } 
-        
-        let riderHtml = '';
-        if(d.riderId && !isHist) {
-            listenChat(d.id, d.riderName || 'Rider');
-            riderHtml = `
-            <div class="rider-info-box">
-                <img src="${d.riderAvatar || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTA0Jy_WMdy17dp2Glp0LYrqzhiCWsk4ffqjXHX0vNhg&s'}" class="rider-avatar-small" onerror="this.onerror=null; this.src='${d.riderAvatar}';">
-                <div class="rider-details-text">${d.riderName || 'Rider'}</div>
-                <a href="tel:${d.riderPhone || ''}" class="btn-rider-action btn-call-rider"><i class="fas fa-phone-alt"></i></a>
-                <div class="btn-rider-action btn-msg-rider chat-btn-circle" id="chat-btn-${d.id}" onclick="openChat('${d.id}', '${d.riderId}', '${d.riderName}')">
-                    <i class="fas fa-comment-dots"></i>
-                    <div class="chat-red-dot"></div>
-                </div>
-            </div>`;
+        function generateOrderId(key) {
+            let hash = 0;
+            for (let i = 0; i < key.length; i++) {
+                hash = (hash << 5) - hash + key.charCodeAt(i);
+                hash |= 0;
+            }
+            hash = Math.abs(hash);
+
+            const letter = String.fromCharCode(65 + (hash % 26));
+            const number = (hash % 999) + 1;
+            const shortKey = key.slice(-6).toUpperCase();
+
+            return `${letter}${String(number).padStart(3, '0')}-${shortKey}`;
         }
 
-        const itemsHtml = d.items.map(i => `<div class="item-row"><img src="${i.image}" onerror="this.onerror=null; this.src='${i.image}';" class="item-thumb"><div class="item-details"><div>${i.qty}x ${i.name}</div></div><div class="item-price">${formatPrice(i.price * i.qty)}</div></div>`).join(''); let emergencyBadge = d.deliveryPriority === 'fast' ? `<span style="background:#FF3D00; color:white; font-size:0.7rem; padding:2px 6px; border-radius:4px; margin-left:10px;">EMERGENCY ⚡</span>` : ''; const restaurantName = restaurants.find(r => r.id === d.restaurantId)?.name || 'Restaurant'; 
+
+        function listenToOrders(){ 
+            if(!currentUser) return; 
+            onValue(ref(db,`orders/${currentUser.uid}`), s=>{ 
+                const al=document.getElementById('orders-list'), hl=document.getElementById('history-list'); 
+                al.innerHTML=""; hl.innerHTML=""; 
+                let activeOrdersFound = false;
+                if(!s.exists()){
+                    al.innerHTML="<p style='text-align:center; margin-top:20px; color:var(--text-muted)'>আপনার কোনো একটিভ অর্ডার নেই।</p>"; 
+                    
+                    document.getElementById('rep-competitor').innerText = formatPrice(0);
+                    document.getElementById('rep-spent').innerText = formatPrice(0);
+                    document.getElementById('rep-saved').innerText = formatPrice(0);
+                    document.getElementById('pop-total-orders').innerText = "0 টি";
+                    document.getElementById('pop-competitor-cost').innerText = formatPrice(0);
+                    document.getElementById('pop-saved-amount').innerText = formatPrice(0);
+                    document.getElementById('rep-del-saved').innerText = formatPrice(0);
+                    return;
+                } 
+                const o=[]; 
+                s.forEach(c => { if(c.val() && c.val().status) o.push({id:c.key, ...c.val()}); }); 
+                o.sort((a,b)=>b.createdAt-a.createdAt); 
+
+                let calculatedTotalOrders = 0;
+                let calculatedTotalSpent = 0;
+                let calculatedTotalComp = 0;
+                let calculatedDeliverySaved = 0;
+
+                o.forEach(d=>{ 
+                    const isHist = d.status==='delivered' || d.status==='cancelled'; 
+                    if(!isHist) activeOrdersFound = true;
+                    const payAmount = d.payment.finalPayable || d.totals.grandTotal; 
+                    
+                    if(d.status === 'delivered') {
+                        calculatedTotalOrders++;
+                        calculatedTotalSpent += payAmount;
+                        
+                        let compSub = 0;
+                        if(d.items) {
+                            d.items.forEach(i => {
+                                compSub += (i.competitorPrice || Math.ceil(i.price * 1.15)) * i.qty;
+                            });
+                        }
+                        const isFreeDeliveryOrder = ((calculatedTotalOrders - 1) % 7) === 6;
+                        const originalDeliveryCharge = d.totals.deliveryCharge || 0;
+                        if (isFreeDeliveryOrder && originalDeliveryCharge === 0) {
+                            calculatedDeliverySaved += 35; // approx save
+                        }
+
+                        calculatedTotalComp += compSub + (d.totals.platformFee || 5) + originalDeliveryCharge + (d.totals.riderTip || 0);
+                    }
+
+                    if(d.status === 'delivered' && d.riderId) { remove(ref(db, `chats/${d.id}`)); } 
+                    
+                    let bannerUrl = appSettings.runningOrderBanner || "https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FAddText_02-03-05.58.24.png?alt=media&token=1628bba5-6fd0-4c6c-a25c-150a3411de56"; 
+                    if(d.status === 'delivered') {
+                        bannerUrl = appSettings.completedOrderBanner || "https://firebasestorage.googleapis.com/v0/b/viptask-5c1fc.appspot.com/o/FOOD%20APP%2FOdder%20compelet.png?alt=media&token=fff2254f-e127-4be1-b155-850a76b69d7c";
+                    }
+                    if(d.status === 'cancelled') {
+                        bannerUrl = appSettings.cancelledOrderBanner || "https://pub-900565f10d704c19a4c2594112330aae.r2.dev/utils/1773446379742_1000257965.png";
+                    }
+
+                    const steps = ['pending', 'accepted', 'preparing', 'ontheway', 'delivered']; 
+                    const currentStepIdx = steps.indexOf(d.status.toLowerCase()); 
+                    const progressWidth = currentStepIdx <= 0 ? 0 : (currentStepIdx / (steps.length - 1)) * 100; 
+                    
+                    const renderStep = (label, status, icon) => { 
+                        let cls = ''; 
+                        const stepIndex = steps.indexOf(status); 
+                        if(d.status === 'cancelled') { cls = 'cancelled'; } 
+                        else if (status === 'preparing' && d.status === 'preparing') { cls = 'preparing'; } 
+                        else if (stepIndex <= currentStepIdx) { cls = 'active'; } 
+                        return `<div class="step ${cls}"><div class="step-circle"><i class="fas ${icon}"></i></div><div class="step-label">${label}</div></div>`; 
+                    }; 
+                    
+                    let footerHtml = '', bengaliMsg = ''; 
+                    if(d.status === 'cancelled') { 
+                        footerHtml = `<div class="cancelled-badge">⚠️ ORDER CANCELLED</div>`; 
+                    } else { 
+                        footerHtml = `<div class="pay-method-text"><i class="fas fa-money-bill-wave" style="color:#4CAF50"></i> Cash on Delivery</div><div class="collect-badge" style="color:#FF5722;">You Pay: ${formatPrice(payAmount)}</div>`; 
+                    } 
         
-        const html = `<div class="order-card-new">
-            <img src="${bannerUrl}" class="order-banner" onerror="this.onerror=null; this.src='${bannerUrl}';">
-            <div class="order-header-info">
-                <div style="display:flex; justify-content:space-between; align-items:center">
-                    <div>
-                        <div class="order-restaurant-name">${restaurantName}</div>
-                        <span class="order-code-lg" style="color:#FF5722; font-size:1.2rem;">ORDER #${d.id.slice(-6).toUpperCase()} ${emergencyBadge}</span>
-                        <span class="order-date-sm">${new Date(d.createdAt).toLocaleString()}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="stepper-wrapper">
-                <div class="stepper">
-                    <div class="stepper-bg-line"></div>
-                    <div class="stepper-progress-line" style="width: ${progressWidth}%"></div>
-                    ${renderStep('Pending', 'pending', 'fa-clock')}
-                    ${renderStep('Accepted', 'accepted', 'fa-check')}
-                    ${renderStep('Preparing', 'preparing', 'fa-box-open')}
-                    ${renderStep('On Way', 'ontheway', 'fa-motorcycle')}
-                    ${renderStep('Delivered', 'delivered', 'fa-home')}
-                </div>
-            </div>
-            ${bengaliMsg}
-            ${riderHtml}
-            <div class="order-items-toggle" onclick="toggleItems(this)"><span><i class="fas fa-list"></i> View Items (${d.items.reduce((a,b)=>a+b.qty,0)})</span><i class="fas fa-chevron-down"></i></div>
-            <div class="order-items-list">${itemsHtml}<div class="total-bill-row"><span>Total Bill</span><span>${formatPrice(payAmount)}</span></div></div>
-            <div class="payment-footer">${footerHtml}</div>
-            ${d.status==='delivered' && !d.rating ? `<div style="padding:0 15px 15px 15px"><button class="btn btn-sm btn-outline" style="width:100%" onclick="openRating('${d.id}')">Rate Order</button></div>`:''}
-        </div>`; 
-        
-        if(isHist) { hl.innerHTML += html; } else { al.innerHTML += html; } }); }); }
+                    let riderHtml = '';
+                    if(d.riderId && !isHist) {
+                        listenChat(d.id, d.riderName || 'Rider');
+                        riderHtml = `
+                        <div class="rider-info-box">
+                            <img src="${d.riderAvatar || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTA0Jy_WMdy17dp2Glp0LYrqzhiCWsk4ffqjXHX0vNhg&s'}" class="rider-avatar-small" onerror="this.onerror=null; this.src='${d.riderAvatar}';">
+                            <div class="rider-details-text">${d.riderName || 'Rider'}</div>
+                            <a href="tel:${d.riderPhone || ''}" class="btn-rider-action btn-call-rider"><i class="fas fa-phone-alt"></i></a>
+                            <div class="btn-rider-action btn-msg-rider chat-btn-circle" id="chat-btn-${d.id}" onclick="openChat('${d.id}', '${d.riderId}', '${d.riderName}')">
+                                <i class="fas fa-comment-dots"></i>
+                                <div class="chat-red-dot"></div>
+                            </div>
+                        </div>`;
+                    }
+
+                    const itemsHtml = d.items.map(i => `<div class="item-row"><img src="${i.image}" onerror="this.onerror=null; this.src='${i.image}';" class="item-thumb"><div class="item-details"><div>${i.qty}x ${i.name}</div></div><div class="item-price">${formatPrice(i.price * i.qty)}</div></div>`).join(''); 
+                    let emergencyBadge = d.deliveryPriority === 'fast' ? `<span style="background:#FF3D00; color:white; font-size:0.7rem; padding:2px 6px; border-radius:4px; margin-left:10px;">EMERGENCY ⚡</span>` : ''; 
+                    const restaurantName = restaurants.find(r => r.id === d.restaurantId)?.name || 'Restaurant'; 
+                    const orderCode = generateOrderId(d.id);
+
+                    const html = `<div class="order-card-new">
+                        <img src="${bannerUrl}" class="order-banner" onerror="this.onerror=null; this.src='${bannerUrl}';">
+                        <div class="order-header-info">
+                            <div style="display:flex; justify-content:space-between; align-items:center">
+                                <div>
+                                    <div class="order-restaurant-name">${restaurantName}</div>
+                                    <span class="order-code-lg">${orderCode} ${emergencyBadge}</span>
+                                    <span class="order-date-sm">${new Date(d.createdAt).toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stepper-wrapper">
+                            <div class="stepper">
+                                <div class="stepper-bg-line"></div>
+                                <div class="stepper-progress-line" style="width: ${progressWidth}%"></div>
+                                ${renderStep('Pending', 'pending', 'fa-clock')}
+                                ${renderStep('Accepted', 'accepted', 'fa-check')}
+                                ${renderStep('Preparing', 'preparing', 'fa-box-open')}
+                                ${renderStep('On Way', 'ontheway', 'fa-motorcycle')}
+                                ${renderStep('Delivered', 'delivered', 'fa-home')}
+                            </div>
+                        </div>
+                        ${bengaliMsg}
+                        ${riderHtml}
+                        <div class="order-items-toggle" onclick="toggleItems(this)"><span><i class="fas fa-list"></i> View Items (${d.items.reduce((a,b)=>a+b.qty,0)})</span><i class="fas fa-chevron-down"></i></div>
+                        <div class="order-items-list">${itemsHtml}<div class="total-bill-row"><span>Total Bill</span><span>${formatPrice(payAmount)}</span></div></div>
+                        <div class="payment-footer">${footerHtml}</div>
+                        ${d.status==='delivered' && !d.rating ? `<div style="padding:0 15px 15px 15px"><button class="btn btn-sm btn-outline" style="width:100%" onclick="openRating('${d.id}')">Rate Order</button></div>`:''}
+                    </div>`; 
+                    
+                    if(isHist) { hl.innerHTML += html; } else { al.innerHTML += html; } 
+                }); 
+                 if(!activeOrdersFound) {
+                    al.innerHTML="<p style='text-align:center; margin-top:20px; color:var(--text-muted)'>আপনার কোনো একটিভ অর্ডার নেই।</p>";
+                }
+
+                window.totalDeliveredOrders = calculatedTotalOrders;
+                
+                if(calculatedTotalOrders > 0) {
+                    const saved = Math.max(0, calculatedTotalComp - calculatedTotalSpent);
+                    document.getElementById('rep-competitor').innerText = formatPrice(calculatedTotalComp);
+                    document.getElementById('rep-spent').innerText = formatPrice(calculatedTotalSpent);
+                    document.getElementById('rep-saved').innerText = formatPrice(saved);
+                    document.getElementById('pop-total-orders').innerText = calculatedTotalOrders + " টি";
+                    document.getElementById('pop-competitor-cost').innerText = formatPrice(calculatedTotalComp);
+                    document.getElementById('pop-saved-amount').innerText = formatPrice(saved);
+                    document.getElementById('rep-del-saved').innerText = formatPrice(calculatedDeliverySaved);
+                } else {
+                    document.getElementById('rep-competitor').innerText = formatPrice(0);
+                    document.getElementById('rep-spent').innerText = formatPrice(0);
+                    document.getElementById('rep-saved').innerText = formatPrice(0);
+                    document.getElementById('pop-total-orders').innerText = "0 টি";
+                    document.getElementById('pop-competitor-cost').innerText = formatPrice(0);
+                    document.getElementById('pop-saved-amount').innerText = formatPrice(0);
+                    document.getElementById('rep-del-saved').innerText = formatPrice(0);
+                }
+                
+                renderLoyaltyTrackRewardPage(calculatedTotalOrders);
+                updateCheckoutRewardAvailability();
+            }); 
+        }
         
         function renderLoyaltyTrack(deliveredCount) { const container = document.getElementById('loyalty-track-container'); if(!container) return; const position = deliveredCount % 7; let html = ''; for(let i=0; i<6; i++) { const isFilled = i < position; html += `<div class="track-step ${isFilled ? 'filled' : ''}">${isFilled ? '<i class="fas fa-check"></i>' : (i+1)}</div>`; } const isFreeActive = (position === 6); html += `<div class="track-step free-step ${isFreeActive ? 'active' : ''}"><i class="fas fa-gift"></i></div><div class="track-line"></div><div class="track-progress" style="width:${Math.min((position / 6) * 100, 100)}%"></div>`; container.innerHTML = html; }
         
@@ -3371,39 +3901,9 @@
             listenChat(orderId, riderName); 
             listenTyping(orderId, riderId); 
         };
+
         window.closeChat = () => { document.getElementById('chat-modal').style.opacity = '0'; document.getElementById('chat-modal').style.pointerEvents = 'none'; activeChatOrderId = null; };
         
-        let let notifiedMessages = JSON.parse(localStorage.getItem('notifiedMessages')) || [];
-        const chatListeners = {};
-        
-        // অ্যাপ যখন ব্যাকগ্রাউন্ড থেকে সামনে আসবে, তখন ডাটা সিঙ্ক করার জন্য
-        document.addEventListener("visibilitychange", function() {
-            if (document.visibilityState === 'visible' && currentUser) {
-                listenToOrders();
-            }
-        });
-
-        window.openChat = (orderId, riderId, riderName) => { 
-            activeChatOrderId = orderId; 
-            activeChatRiderId = riderId; 
-            document.getElementById('chat-rider-name').innerText = riderName || "Rider"; 
-            document.getElementById('chat-messages').innerHTML = '<p id="no-chat-msg" style="text-align:center; color:var(--text-muted); padding:20px;">No messages</p>';
-            
-            // অ্যানিমেশন এবং ডট রিমুভ করা
-            const chatBtn = document.getElementById(`chat-btn-${orderId}`);
-            if (chatBtn) {
-                chatBtn.classList.remove('has-new-msg');
-            }
-
-            unreadChatQueue = unreadChatQueue.filter(x => x.orderId !== orderId); 
-            updateNavNotification(); 
-            document.getElementById('chat-modal').style.opacity = '1'; 
-            document.getElementById('chat-modal').style.pointerEvents = 'auto'; 
-            if (chatListeners[orderId]) { off(ref(db, `chats/${orderId}/messages`)); delete chatListeners[orderId]; } 
-            listenChat(orderId, riderName); 
-            listenTyping(orderId, riderId); 
-        };
-
         function listenChat(orderId, riderName) { 
             if(chatListeners[orderId]) return; 
             const chatRef = ref(db, `chats/${orderId}/messages`); 
@@ -3420,12 +3920,24 @@
                 } 
                 
                 if (msg.senderId !== currentUser.uid && !msg.seen) {
-                    // সিন না করা নতুন মেসেজ আসলেই কেবল নোটিফিকেশন ও অ্যানিমেশন হবে
                     if (activeChatOrderId !== orderId) { 
                         const exists = unreadChatQueue.find(x => x.key === key); 
                         if(!exists) { 
                             unreadChatQueue.push({ key: key, orderId: orderId, riderName: riderName || "Rider", riderId: msg.senderId, text: msg.text }); 
                             updateNavNotification();
+                            
+                            // Bottom Nav Popup and Animation for new message
+                            const navPopup = document.getElementById('nav-msg-popup');
+                            const navIconBox = document.getElementById('nav-orders-icon-box');
+                            if (navPopup && navIconBox) {
+                                navPopup.classList.add('show');
+                                navIconBox.classList.add('nav-msg-anim');
+                                setTimeout(() => {
+                                    navPopup.classList.remove('show');
+                                    navIconBox.classList.remove('nav-msg-anim');
+                                }, 10000); // Popup stays for 10 seconds
+                            }
+
                             const chatBtn = document.getElementById(`chat-btn-${orderId}`);
                             if (chatBtn) chatBtn.classList.add('has-new-msg');
                         }
@@ -3433,7 +3945,7 @@
                         if (typeof window.Android !== "undefined" && window.Android.showNotification && !notifiedMessages.includes(key)) {
                             window.Android.showNotification('New Message from ' + (riderName || "Rider"), msg.text);
                             notifiedMessages.push(key);
-                            if(notifiedMessages.length > 50) notifiedMessages.shift(); // পুরনো মেসেজ আইডি রিমুভ করা
+                            if(notifiedMessages.length > 50) notifiedMessages.shift();
                             localStorage.setItem('notifiedMessages', JSON.stringify(notifiedMessages));
                         }
                     } 
@@ -3452,12 +3964,14 @@
         }
         
         function listenTyping(orderId, riderId) { const statusDiv = document.getElementById('chat-status-text'); onValue(ref(db, `chats/${orderId}/typing/${riderId}`), (snap) => { if(snap.val() === true) { statusDiv.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div> Typing...`; } else { statusDiv.innerText = "Active now"; } }); const input = document.getElementById('chat-input-field'); input.addEventListener('input', () => { update(ref(db, `chats/${orderId}/typing/${currentUser.uid}`), true); clearTimeout(window.typingTimeout); window.typingTimeout = setTimeout(() => { update(ref(db, `chats/${orderId}/typing/${currentUser.uid}`), false); }, 1500); }); }
+        
         function renderMessage(msg, key) { 
             const noMsgEl = document.getElementById('no-chat-msg');
             if (noMsgEl) noMsgEl.remove();
             if(document.getElementById(`msg-${key}`)) return; 
             const container = document.getElementById('chat-messages'); 
             const isMe = msg.senderId === currentUser.uid; let checkIcon = ''; if(isMe) { const seenClass = msg.seen ? 'read' : ''; checkIcon = `<i class="fas fa-check-double seen-icon ${seenClass}" id="seen-${key}"></i>`; onValue(ref(db, `chats/${activeChatOrderId}/messages/${key}/seen`), (s)=>{ if(s.val()===true) { const icon = document.getElementById(`seen-${key}`); if(icon) icon.classList.add('read'); } }); } const html = `<div class="msg-bubble ${isMe ? 'sent' : 'received'}" id="msg-${key}">${msg.text}<div class="msg-meta">${new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}${checkIcon}</div></div>`; container.insertAdjacentHTML('beforeend', html); container.scrollTop = container.scrollHeight; }
+            
         window.sendMessage = async () => { const input = document.getElementById('chat-input-field'); const text = input.value.trim(); if(!text || !activeChatOrderId) return; input.value = ""; await push(ref(db, `chats/${activeChatOrderId}/messages`), { senderId: currentUser.uid, text: text, timestamp: serverTimestamp(), seen: false }); update(ref(db, `chats/${activeChatOrderId}/typing/${currentUser.uid}`), false); };
         window.handleEnter = (e) => { if(e.key === 'Enter') sendMessage(); };
         window.previewAvatar=(e)=>{const f=e.target.files[0];if(f)document.getElementById('edit-avatar-preview').src=URL.createObjectURL(f);}
