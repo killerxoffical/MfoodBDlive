@@ -17,7 +17,7 @@
     <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.3/dist/dotlottie-wc.js" type="module"></script>
 
     <style>
-        /* GLOBAL VARIABLES & THEM */
+        /* GLOBAL VARIABLES & THEME */
         :root {
             --primary: #FF5722; 
             --primary-dark: #E64A19;
@@ -308,7 +308,9 @@
         
         /* GLOBAL FULL SCREEN CART */
         #page-global-cart { padding: 0; }
-        #global-cart-items { padding: 20px; }
+        #global-cart-items { padding: 20px; padding-bottom: calc(140px + env(safe-area-inset-bottom)); }
+        #page-global-cart { min-height: 100vh; }
+        #page-global-cart .container:last-child { padding-bottom: calc(140px + env(safe-area-inset-bottom)); }
 
         .cart-restaurant-summary { background: var(--bg-card); border: 1px solid rgba(255, 87, 34, 0.3); border-radius: 16px; padding: 15px; margin-bottom: 20px; box-shadow: var(--shadow); }
         .crs-header { display: flex; align-items: center; gap: 12px; }
@@ -1252,6 +1254,136 @@
             opacity: 0.55;
             filter: grayscale(0.2);
         }
+    
+        /* SERVICE OFF POPUP */
+        .service-off-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.72);
+            backdrop-filter: blur(10px);
+            z-index: 9500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.28s ease;
+        }
+        .service-off-overlay.active { opacity: 1; pointer-events: auto; }
+        .service-off-card {
+            width: min(100%, 360px);
+            background: linear-gradient(160deg, rgba(255,255,255,0.98), rgba(255,248,244,0.98));
+            border-radius: 28px;
+            padding: 26px 22px 20px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 87, 34, 0.18);
+            box-shadow: 0 25px 70px rgba(0,0,0,0.28);
+            transform: translateY(18px) scale(0.92);
+            transition: transform 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+        }
+        [data-theme="dark"] .service-off-card {
+            background: linear-gradient(160deg, rgba(20,20,20,0.98), rgba(35,20,15,0.98));
+            border-color: rgba(255, 138, 101, 0.22);
+            box-shadow: 0 25px 70px rgba(0,0,0,0.45);
+        }
+        .service-off-overlay.active .service-off-card { transform: translateY(0) scale(1); }
+        .service-off-glow {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            right: -40px;
+            top: -40px;
+            background: radial-gradient(circle, rgba(255,87,34,0.22), rgba(255,87,34,0));
+            pointer-events: none;
+        }
+        .service-off-icon-wrap {
+            width: 92px;
+            height: 92px;
+            margin: 4px auto 18px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .service-off-ripple,
+        .service-off-ripple::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 87, 34, 0.28);
+            animation: serviceRipple 2.1s ease-out infinite;
+        }
+        .service-off-ripple::after { animation-delay: 1.05s; }
+        @keyframes serviceRipple {
+            0% { transform: scale(0.72); opacity: 0.85; }
+            100% { transform: scale(1.28); opacity: 0; }
+        }
+        .service-off-icon {
+            width: 66px;
+            height: 66px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF5722, #FF8A65);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7rem;
+            box-shadow: 0 12px 30px rgba(255,87,34,0.28);
+            animation: serviceFloat 2.6s ease-in-out infinite;
+        }
+        @keyframes serviceFloat {
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .service-off-title {
+            font-size: 1.22rem;
+            font-weight: 800;
+            text-align: center;
+            color: var(--text-main);
+            margin-bottom: 10px;
+        }
+        .service-off-desc {
+            font-size: 0.97rem;
+            line-height: 1.65;
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+        .service-off-time {
+            background: rgba(255, 87, 34, 0.08);
+            border: 1px solid rgba(255, 87, 34, 0.14);
+            color: var(--text-main);
+            border-radius: 16px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.92rem;
+            margin-bottom: 14px;
+        }
+        .service-off-time i { color: var(--primary); font-size: 1rem; }
+        .service-off-time strong {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+        .service-off-btn {
+            width: 100%;
+            border: none;
+            border-radius: 16px;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, #FF5722, #FF8A65);
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.98rem;
+            box-shadow: 0 10px 24px rgba(255,87,34,0.24);
+            cursor: pointer;
+        }
+
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -1437,6 +1569,27 @@
 
         <div class="auth-toggle-link" style="margin-top: 15px;">
             Already have an account? <span onclick="showAuthPage('login')">Login</span>
+        </div>
+    </div>
+
+
+    <div id="service-off-popup" class="service-off-overlay" onclick="closeServiceOffPopup(event)">
+        <div class="service-off-card" onclick="event.stopPropagation()">
+            <div class="service-off-glow"></div>
+            <div class="service-off-icon-wrap">
+                <div class="service-off-ripple"></div>
+                <div class="service-off-icon"><i class="fas fa-store-slash"></i></div>
+            </div>
+            <div class="service-off-title">সার্ভিস সাময়িকভাবে বন্ধ</div>
+            <div class="service-off-desc" id="service-off-popup-text">এই মুহূর্তে আমাদের সার্ভিস বন্ধ রয়েছে।</div>
+            <div class="service-off-time">
+                <i class="far fa-clock"></i>
+                <div>
+                    <strong>আবার খোলার সময়</strong>
+                    <span id="service-off-popup-time">Admin update er jonno wait korun</span>
+                </div>
+            </div>
+            <button class="service-off-btn" onclick="closeServiceOffPopup()">ঠিক আছে</button>
         </div>
     </div>
 
@@ -2150,6 +2303,7 @@
         let currentUser, currentUserProfile={}, cart=[], products=[], restaurants = [], rootCategories=[], appSettings = {
             paymentMethods: { cod: true }, compareBannerUrl: "", competitorLogo: "",
             serviceStartTime: "07:00", serviceEndTime: "24:00",
+            serviceOff: false, serviceOffNotice: "", reopenTime: "",
             weightConfig: { threshold: 5000, rate1: 2, rate2: 4 }
         }, riderTip=0, selectedPayment='cod', locationData={enabled:false}, currentOrderIdForRating = null;
         
@@ -2486,12 +2640,61 @@
                 if(s.exists()){
                     appSettings={...appSettings,...s.val()}; 
                     document.getElementById('service-hours-display').innerText = `${appSettings.serviceStartTime} - ${appSettings.serviceEndTime}` || ''; 
-                    
+
                     if(appSettings.appLogo) {
                         document.querySelectorAll('.auth-logo-dyn').forEach(img => img.src = appSettings.appLogo);
                     }
+                    updateServiceOffPopupContent();
                 }
             });
+        }
+
+        function isServiceTemporarilyOff() {
+            const offValues = ['off', 'closed', 'close', 'disabled', 'pause', 'paused'];
+            const serviceStatus = String(appSettings.serviceStatus || appSettings.appStatus || '').toLowerCase();
+            return appSettings.appOff === true ||
+                   appSettings.serviceOff === true ||
+                   appSettings.isAppOff === true ||
+                   appSettings.appEnabled === false ||
+                   appSettings.serviceEnabled === false ||
+                   offValues.includes(serviceStatus);
+        }
+
+        function getServiceResumeText() {
+            return appSettings.serviceResumeTime ||
+                   appSettings.reopenTime ||
+                   appSettings.reopenAt ||
+                   appSettings.openTimeText ||
+                   appSettings.serviceOpenMessage ||
+                   `${appSettings.serviceStartTime || ''}${appSettings.serviceEndTime ? ' - ' + appSettings.serviceEndTime : ''}`.trim() ||
+                   'Admin update er jonno wait korun';
+        }
+
+        function getServiceOffPopupText() {
+            return appSettings.serviceOffNoticeBn ||
+                   appSettings.serviceOffNotice ||
+                   appSettings.closedNoticeBn ||
+                   appSettings.closedNotice ||
+                   'এখন আমাদের সার্ভিস বন্ধ রয়েছে। অ্যাপ ব্রাউজ করতে পারবেন, কিন্তু চেকআউট আপাতত বন্ধ আছে।';
+        }
+
+        function updateServiceOffPopupContent() {
+            const textEl = document.getElementById('service-off-popup-text');
+            const timeEl = document.getElementById('service-off-popup-time');
+            if (textEl) textEl.innerText = getServiceOffPopupText();
+            if (timeEl) timeEl.innerText = getServiceResumeText();
+        }
+
+        window.showServiceOffPopup = () => {
+            updateServiceOffPopupContent();
+            const popup = document.getElementById('service-off-popup');
+            if (popup) popup.classList.add('active');
+        };
+
+        window.closeServiceOffPopup = (event) => {
+            if (event && event.target && event.target !== event.currentTarget) return;
+            const popup = document.getElementById('service-off-popup');
+            if (popup) popup.classList.remove('active');
         }
         
         // --- SLIDER FUNCTIONS ---
@@ -3431,11 +3634,15 @@
         function showFinalCheckoutPage(){
             const checkoutCart = cart.filter(item => item.restaurantId === checkoutRestaurantId);
             if(!checkoutCart.length)return showCustomAlert("Your cart for this restaurant is empty!");
+            if (isServiceTemporarilyOff()) {
+                showServiceOffPopup();
+                return;
+            }
             if(!currentUserProfile.address?.area){showCustomAlert("Please add a delivery address first.");showPage('address');return;}
-            
+
             const restaurant = restaurants.find(r => r.id === checkoutRestaurantId);
             if (!restaurant) return showCustomAlert("Restaurant not found.");
-            
+
             showPage('checkout');
             
             const isFreeDelivery = (window.totalDeliveredOrders % 7) === 6;
@@ -3624,12 +3831,13 @@
         function resetCheckoutState() { riderTip = 0; selectedRewardDiscount = 0; document.getElementById('tip-manual').value = ""; document.getElementById('rider-note').value = ""; document.getElementById('location-link-input').value = ""; locationData={enabled:false}; document.getElementById('loc-map-preview').innerHTML = ""; document.getElementById('loc-map-preview').classList.add('hidden'); document.getElementById('loc-address-text').innerHTML = ""; document.getElementById('loc-address-text').classList.add('hidden'); document.getElementById('loc-box').classList.remove('active'); document.getElementById('loc-title-text').innerHTML = '<i class="fas fa-map-marker-alt"></i> Share Live Location'; document.getElementById('loc-status-text').innerText = "Tap to enable map"; document.getElementById('swipe-handle').style.left = '0'; document.getElementById('swipe-bg').style.width = '0'; selectedPayment = 'cod'; document.querySelectorAll('.tip-card').forEach(c => c.classList.remove('selected')); updateCheckoutRewardAvailability(); }
         
         let confirmationTimer = null;
-        window.showOrderConfirmation = () => { const checkoutCart = cart.filter(item => item.restaurantId === checkoutRestaurantId); if(!checkoutCart.length) { resetSwipe(); return showCustomAlert("Cart empty"); } if(!currentUserProfile.address?.area){ resetSwipe(); showCustomAlert("Set address first"); showPage('address'); return; } const modal = document.getElementById('confirm-order-modal'); const btn = document.getElementById('btn-confirm-final'); modal.classList.add('active'); btn.classList.add('disabled'); let count = 5; btn.innerText = `Wait (${count}s)`; if(confirmationTimer) clearInterval(confirmationTimer); confirmationTimer = setInterval(() => { count--; if(count <= 0) { clearInterval(confirmationTimer); btn.classList.remove('disabled'); btn.innerText = "Yes (Confirm)"; } else { btn.innerText = `Wait (${count}s)`; } }, 1000); };
+        window.showOrderConfirmation = () => { const checkoutCart = cart.filter(item => item.restaurantId === checkoutRestaurantId); if(!checkoutCart.length) { resetSwipe(); return showCustomAlert("Cart empty"); } if (isServiceTemporarilyOff()) { resetSwipe(); showServiceOffPopup(); return; } if(!currentUserProfile.address?.area){ resetSwipe(); showCustomAlert("Set address first"); showPage('address'); return; } const modal = document.getElementById('confirm-order-modal'); const btn = document.getElementById('btn-confirm-final'); modal.classList.add('active'); btn.classList.add('disabled'); let count = 5; btn.innerText = `Wait (${count}s)`; if(confirmationTimer) clearInterval(confirmationTimer); confirmationTimer = setInterval(() => { count--; if(count <= 0) { clearInterval(confirmationTimer); btn.classList.remove('disabled'); btn.innerText = "Yes (Confirm)"; } else { btn.innerText = `Wait (${count}s)`; } }, 1000); };
         
         function resetSwipe() { const handle = document.getElementById('swipe-handle'); const bg = document.getElementById('swipe-bg'); if(handle) handle.style.left = '0'; if(bg) bg.style.width = '0'; }
         
         window.confirmAndPlaceOrder = async () => { 
             document.getElementById('confirm-order-modal').classList.remove('active'); 
+            if (isServiceTemporarilyOff()) { resetSwipe(); showServiceOffPopup(); return; }
             if(isOrderProcessing) return; 
             isOrderProcessing = true; 
             toggleLoader(true); 
