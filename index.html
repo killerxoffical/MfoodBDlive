@@ -2639,7 +2639,8 @@
             onValue(ref(db,'settings/app_config'), s => {
                 if(s.exists()){
                     appSettings={...appSettings,...s.val()}; 
-                    document.getElementById('service-hours-display').innerText = `${appSettings.serviceStartTime} - ${appSettings.serviceEndTime}` || ''; 
+                    const hours = getConfiguredServiceHours();
+                    document.getElementById('service-hours-display').innerText = `${hours.start} - ${hours.end}` || ''; 
 
                     if(appSettings.appLogo) {
                         document.querySelectorAll('.auth-logo-dyn').forEach(img => img.src = appSettings.appLogo);
@@ -2649,24 +2650,78 @@
             });
         }
 
+        function getConfiguredServiceHours() {
+            return {
+                start: appSettings.serviceStartTime || appSettings.openTime || appSettings.serviceOpenTime || appSettings.startTime || '',
+                end: appSettings.serviceEndTime || appSettings.closeTime || appSettings.serviceCloseTime || appSettings.endTime || ''
+            };
+        }
+
+        function parseTimeToMinutes(timeValue) {
+            if (timeValue === undefined || timeValue === null) return null;
+            let raw = String(timeValue).trim();
+            if (!raw) return null;
+
+            raw = raw.replace(/\./g, ':').replace(/\s+/g, ' ').toUpperCase();
+            const meridiemMatch = raw.match(/(AM|PM)$/);
+            const meridiem = meridiemMatch ? meridiemMatch[1] : null;
+            if (meridiem) raw = raw.replace(/\s?(AM|PM)$/, '').trim();
+
+            let parts = raw.split(':').map(v => v.trim()).filter(Boolean);
+            if (!parts.length) return null;
+
+            let hours = Number(parts[0]);
+            let minutes = parts.length > 1 ? Number(parts[1]) : 0;
+            if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+
+            if (meridiem) {
+                if (hours < 1 || hours > 12 || minutes < 0 || minutes > 59) return null;
+                if (meridiem === 'AM' && hours === 12) hours = 0;
+                if (meridiem === 'PM' && hours !== 12) hours += 12;
+            } else {
+                if (hours === 24 && minutes === 0) return 24 * 60;
+                if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+            }
+
+            return hours * 60 + minutes;
+        }
+
+        function isWithinConfiguredServiceHours() {
+            const hours = getConfiguredServiceHours();
+            const start = parseTimeToMinutes(hours.start);
+            const end = parseTimeToMinutes(hours.end);
+            if (start === null || end === null) return true;
+
+            const nowObj = new Date();
+            const now = nowObj.getHours() * 60 + nowObj.getMinutes();
+
+            if (start === end) return true;
+            if (start < end) return now >= start && now < end;
+
+            return now >= start || now < end;
+        }
+
         function isServiceTemporarilyOff() {
             const offValues = ['off', 'closed', 'close', 'disabled', 'pause', 'paused'];
             const serviceStatus = String(appSettings.serviceStatus || appSettings.appStatus || '').toLowerCase();
-            return appSettings.appOff === true ||
+            const manuallyOff = appSettings.appOff === true ||
                    appSettings.serviceOff === true ||
                    appSettings.isAppOff === true ||
                    appSettings.appEnabled === false ||
                    appSettings.serviceEnabled === false ||
                    offValues.includes(serviceStatus);
+
+            return manuallyOff || !isWithinConfiguredServiceHours();
         }
 
         function getServiceResumeText() {
+            const hours = getConfiguredServiceHours();
             return appSettings.serviceResumeTime ||
                    appSettings.reopenTime ||
                    appSettings.reopenAt ||
                    appSettings.openTimeText ||
                    appSettings.serviceOpenMessage ||
-                   `${appSettings.serviceStartTime || ''}${appSettings.serviceEndTime ? ' - ' + appSettings.serviceEndTime : ''}`.trim() ||
+                   `${hours.start || ''}${hours.end ? ' - ' + hours.end : ''}`.trim() ||
                    'Admin update er jonno wait korun';
         }
 
