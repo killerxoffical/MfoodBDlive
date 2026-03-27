@@ -2095,11 +2095,37 @@
                     <div class="profile-menu-item" onclick="showPage('orders')"><i class="fas fa-box-open"></i> Active Orders</div>
                     <div class="profile-menu-item" onclick="showPage('history')"><i class="fas fa-history"></i> Order History</div>
                     
+                    <div class="profile-menu-item" onclick="showPage('download-app')">
+                        <i class="fas fa-download"></i> Download APK for Android
+                    </div>
+
                     <div class="profile-menu-item" onclick="showPage('support')">
                         <i class="fas fa-headset"></i> Help & Support
                     </div>
 
                     <div class="profile-menu-item" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
+                </div>
+            </div>
+
+            <!-- DOWNLOAD APP PAGE -->
+            <div id="page-download-app" class="page-section hidden">
+                <div class="container">
+                    <div class="page-header"><h3 id="download-apk-title">Download APK for Android</h3><button class="btn-sm btn-outline" onclick="showPage('profile')">Back</button></div>
+
+                    <div class="support-form" style="text-align:center;">
+                        <div style="width:72px; height:72px; margin:0 auto 14px; border-radius:22px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg, rgba(255,87,34,.14), rgba(255,152,0,.2)); color:var(--primary); font-size:30px;">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div style="font-size:1rem; line-height:1.8; color:var(--text-main); margin-bottom:18px; text-align:left;">
+                            <span id="download-apk-note-android">যারা <b>Android</b> ব্যবহার করেন তারা <b>APK</b> ব্যবহার করতে পারেন।</span><br><br>
+                            <span id="download-apk-note-ios"><b>iPhone</b> user দের জন্য এই website browser এ ব্যবহার করতে হবে।</span>
+                        </div>
+                        <div style="background:var(--input-bg); border:1px solid var(--border-color); padding:10px 12px; border-radius:12px; margin-bottom:12px; text-align:left;">
+                            <div style="font-size:.72rem; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:.4px;">APK Link</div>
+                            <div id="download-apk-link-preview" style="word-break:break-all; font-size:.82rem; color:var(--text-main);">https://files.catbox.moe/j5sr8k.apk</div>
+                        </div>
+                        <button id="download-apk-btn" class="btn btn-primary" onclick="downloadAndroidApp()"><i class="fas fa-download"></i> Download APK</button>
+                    </div>
                 </div>
             </div>
 
@@ -2304,6 +2330,11 @@
             paymentMethods: { cod: true }, compareBannerUrl: "", competitorLogo: "",
             serviceStartTime: "07:00", serviceEndTime: "24:00",
             serviceOff: false, serviceOffNotice: "", reopenTime: "",
+            androidApkUrl: "https://files.catbox.moe/j5sr8k.apk",
+            apkDownloadButtonText: "Download APK",
+            apkDownloadTitle: "Download APK for Android",
+            apkDownloadNoteBn: "যারা Android ব্যবহার করেন তারা APK ব্যবহার করতে পারেন।",
+            apkDownloadNoteIosBn: "iPhone user দের জন্য এই website browser এ ব্যবহার করতে হবে।",
             weightConfig: { threshold: 5000, rate1: 2, rate2: 4 }
         }, riderTip=0, selectedPayment='cod', locationData={enabled:false}, currentOrderIdForRating = null;
         
@@ -2362,6 +2393,46 @@
         window.showToast=(m,t='success')=>{const c=document.getElementById('toast-container'),el=document.createElement('div');el.className='toast';el.style.background=t==='error'?'var(--danger)':'#333';el.innerHTML=m;c.appendChild(el);setTimeout(()=>el.remove(),3000);};
         window.showCustomAlert = (msg, title="Notice") => { const m = document.getElementById('custom-modal'); document.getElementById('cm-title').innerText = title; document.getElementById('cm-desc').innerText = msg; m.classList.add('active'); };
         window.closeCustomModal = () => { document.getElementById('custom-modal').classList.remove('active'); };
+        function getAndroidApkUrl() {
+            return appSettings.androidApkUrl ||
+                   appSettings.apkDownloadUrl ||
+                   appSettings.downloadApkUrl ||
+                   appSettings.appDownloadUrl ||
+                   appSettings.apkUrl ||
+                   appSettings.downloadUrl ||
+                   "https://files.catbox.moe/j5sr8k.apk";
+        }
+
+        function refreshApkDownloadUI() {
+            const btn = document.getElementById('download-apk-btn');
+            const titleEl = document.getElementById('download-apk-title');
+            const noteAndroidEl = document.getElementById('download-apk-note-android');
+            const noteIosEl = document.getElementById('download-apk-note-ios');
+            const urlPreviewEl = document.getElementById('download-apk-link-preview');
+
+            const apkUrl = getAndroidApkUrl();
+            if (btn) btn.innerHTML = `<i class="fas fa-download"></i> ${appSettings.apkDownloadButtonText || 'Download APK'}`;
+            if (titleEl) titleEl.innerText = appSettings.apkDownloadTitle || 'Download APK for Android';
+            if (noteAndroidEl) noteAndroidEl.innerHTML = appSettings.apkDownloadNoteBn || 'যারা <b>Android</b> ব্যবহার করেন তারা <b>APK</b> ব্যবহার করতে পারেন।';
+            if (noteIosEl) noteIosEl.innerHTML = appSettings.apkDownloadNoteIosBn || '<b>iPhone</b> user দের জন্য এই website browser এ ব্যবহার করতে হবে।';
+            if (urlPreviewEl) urlPreviewEl.innerText = apkUrl;
+        }
+
+        window.downloadAndroidApp = () => {
+            const apkUrl = getAndroidApkUrl();
+            if (!apkUrl) {
+                showCustomAlert('APK download link is not available right now. Please contact support.');
+                return;
+            }
+            const a = document.createElement('a');
+            a.href = apkUrl;
+            a.setAttribute('download', '');
+            a.setAttribute('target', '_self');
+            a.setAttribute('rel', 'noopener');
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        };
         // window.alert = window.showCustomAlert;
         const toggleLoader=s=>document.getElementById('global-loader').classList.toggle('hidden',!s);
         const formatPrice=p=>`৳ ${p}`;
@@ -2635,6 +2706,8 @@
 
         function updateAllUIs() { if(restaurants.length > 0 && products.length > 0) { renderRestaurants(); } updateCartUI(); listenToOrders(); }
         
+        refreshApkDownloadUI();
+
         function fetchSettings(){
             onValue(ref(db,'settings/app_config'), s => {
                 if(s.exists()){
@@ -2645,6 +2718,7 @@
                     if(appSettings.appLogo) {
                         document.querySelectorAll('.auth-logo-dyn').forEach(img => img.src = appSettings.appLogo);
                     }
+                    refreshApkDownloadUI();
                     updateServiceOffPopupContent();
                 }
             });
